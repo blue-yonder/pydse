@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    Setup file for pydse.
+    Setup file for PyDSE.
 
-    This file was generated with PyScaffold 0.4.1, a tool that easily
+    This file was generated with PyScaffold 0.5, a tool that easily
     puts up a scaffold for your new Python project. Learn more under:
     https://github.com/blue-yonder/pyscaffold
 """
@@ -23,15 +23,19 @@ __location__ = os.path.join(os.getcwd(), os.path.dirname(
 
 # Change these settings according to your needs
 MAIN_PACKAGE = "pydse"
-DESCRIPTION = "None"
+DESCRIPTION = "Dynamic System Estimation for Python"
 LICENSE = "new BSD"
 URL = "None"
 AUTHOR = "Florian Wilhelm"
 EMAIL = "Florian.Wilhelm@blue-yonder.com"
 
+COVERAGE_XML = False
+COVERAGE_HTML = False
+JUNIT_XML = False
+
 # Add here all kinds of additional classifiers as defined under
 # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-CLASSIFIERS = ['Development Status :: 4 - Beta',
+CLASSIFIERS = ['Development Status :: 2 - Pre-Alpha',
                'Programming Language :: Python']
 
 # Add here console scripts like ['hello_world = pydse.module:function']
@@ -45,16 +49,28 @@ versioneer.parentdir_prefix = MAIN_PACKAGE + '-'
 
 
 class PyTest(TestCommand):
-    user_options = [("cov=", None, "Run coverage")]
+    user_options = [("cov=", None, "Run coverage"),
+                    ("cov-xml=", None, "Generate junit xml report"),
+                    ("cov-html=", None, "Generate junit html report"),
+                    ("junitxml=", None, "Generate xml of test results")]
 
     def initialize_options(self):
         TestCommand.initialize_options(self)
         self.cov = None
+        self.cov_xml = False
+        self.cov_html = False
+        self.junitxml = None
 
     def finalize_options(self):
         TestCommand.finalize_options(self)
         if self.cov is not None:
             self.cov = ["--cov", self.cov, "--cov-report", "term-missing"]
+            if self.cov_xml:
+                self.cov.extend(["--cov-report", "xml"])
+            if self.cov_html:
+                self.cov.extend(["--cov-report", "html"])
+        if self.junitxml is not None:
+            self.junitxml = ["--junitxml", self.junitxml]
 
     def run_tests(self):
         try:
@@ -66,6 +82,8 @@ class PyTest(TestCommand):
         if self.cov:
             params["args"] += self.cov
             params["plugins"] = ["cov"]
+        if self.junitxml:
+            params["args"] += self.junitxml
         errno = pytest.main(**params)
         sys.exit(errno)
 
@@ -121,6 +139,30 @@ install_reqs = get_install_requirements("requirements.txt")
 
 
 def setup_package():
+    command_options = {
+        'docs': {'project': ('setup.py', MAIN_PACKAGE),
+                 'version': ('setup.py', version.split('-', 1)[0]),
+                 'release': ('setup.py', version),
+                 'build_dir': ('setup.py', docs_build_path),
+                 'config_dir': ('setup.py', docs_path),
+                 'source_dir': ('setup.py', docs_path)},
+        'doctest': {'project': ('setup.py', MAIN_PACKAGE),
+                    'version': ('setup.py', version.split('-', 1)[0]),
+                    'release': ('setup.py', version),
+                    'build_dir': ('setup.py', docs_build_path),
+                    'config_dir': ('setup.py', docs_path),
+                    'source_dir': ('setup.py', docs_path),
+                    'builder': ('setup.py', 'doctest')},
+        'test': {'test_suite': ('setup.py', 'tests'),
+                 'cov': ('setup.py', 'pydse')}
+    }
+    if JUNIT_XML:
+        command_options['test']['junitxml'] = ('setup.py', 'junit.xml')
+    if COVERAGE_XML:
+        command_options['test']['cov_xml'] = ('setup.py', True)
+    if COVERAGE_HTML:
+        command_options['test']['cov_html'] = ('setup.py', True)
+
     setup(name=MAIN_PACKAGE,
           version=version,
           url=URL,
@@ -135,23 +177,7 @@ def setup_package():
           install_requires=install_reqs,
           cmdclass=cmdclass,
           tests_require=['pytest-cov', 'pytest'],
-          command_options={
-              'docs': {'project': ('setup.py', MAIN_PACKAGE),
-                       'version': ('setup.py', version.split('-', 1)[0]),
-                       'release': ('setup.py', version),
-                       'build_dir': ('setup.py', docs_build_path),
-                       'config_dir': ('setup.py', docs_path),
-                       'source_dir': ('setup.py', docs_path)},
-              'doctest': {'project': ('setup.py', MAIN_PACKAGE),
-                          'version': ('setup.py', version.split('-', 1)[0]),
-                          'release': ('setup.py', version),
-                          'build_dir': ('setup.py', docs_build_path),
-                          'config_dir': ('setup.py', docs_path),
-                          'source_dir': ('setup.py', docs_path),
-                          'builder': ('setup.py', 'doctest')},
-              'test': {'test_suite': ('setup.py', 'tests'),
-                       'cov': ('setup.py', 'pydse')}
-          },
+          command_options=command_options,
           entry_points={'console_scripts': CONSOLE_SCRIPTS})
 
 if __name__ == "__main__":

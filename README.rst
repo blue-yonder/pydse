@@ -1,8 +1,8 @@
 =====
-pydse
+PyDSE
 =====
 
-Your project was successfully set up with PyScaffold 0.4.1.
+Your project was successfully set up with PyScaffold 0.5.
 Following features are available:
 
 Packaging
