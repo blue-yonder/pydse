@@ -1,0 +1,27 @@
+# Temporary files
+*~
+*.py[co]
+*.cfg
+*.orig
+.coverage
+.tox
+.cache/*
+
+# Project files
+.ropeproject
+.project
+.pydevproject
+.settings
+.ideagit stat
+
+# Package files
+*.egg
+*.egg-info
+
+# Build and docs folder/files
+build/*
+dist/*
+docs/_rst/*
+docs/_build/*
+cover/*
+MANIFEST
