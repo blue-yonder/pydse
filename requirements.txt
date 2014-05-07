@@ -3,3 +3,5 @@
 # scipy>=0.9
 
 setuptools
+numpy
+scipy

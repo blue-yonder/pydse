@@ -4,6 +4,7 @@
 from __future__ import division, print_function, absolute_import
 
 import logging
+
 import numpy as np
 from numpy import linalg
 from scipy import optimize
