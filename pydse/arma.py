@@ -7,6 +7,7 @@ import logging
 import numpy as np
 from numpy import linalg
 from scipy import optimize
+from six.moves import xrange
 
 __author__ = "Florian Wilhelm"
 __copyright__ = "Blue Yonder"

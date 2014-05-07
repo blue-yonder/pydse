@@ -3,5 +3,6 @@
 # scipy>=0.9
 
 setuptools
+six
 numpy
 scipy
