@@ -5,7 +5,7 @@ python:
   - 3.2
   - 3.3
 install:
-  - sudo apt-get install build-essential python-dev python-numpy python-setuptools python-scipy libatlas-dev libatlas3-base
+  - sudo apt-get install build-essential python-dev python-numpy python-setuptools python-scipy libatlas-dev libatlas-base-dev
   - pip install -r requirements.txt
   - pip install coveralls 
 script:
