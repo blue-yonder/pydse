@@ -6,7 +6,7 @@ python:
   - 3.3
 install:
   - sudo apt-get install build-essential gfortran python-dev python-numpy python-setuptools python-scipy libatlas-dev libatlas-base-dev
-  - pip install -r -vq requirements.txt
+  - pip install -vq -r requirements.txt
   - pip install coveralls
 script:
   - python setup.py test 
