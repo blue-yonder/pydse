@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.WARN)
 
 def test_arma_construction():
     AR = ([1, .5, .3, 0, .2, .1, 0, .2, .05, 1, .5, .3], [3, 2, 2])
-    MA = ([1, 02, 0, .1, 0, 0, 1, .3], [2, 2, 2])
+    MA = ([1, .2, 0, .1, 0, 0, 1, .3], [2, 2, 2])
     X = ([1, 2, 3, 4, 5, 6], [1, 2, 3])
     arma = ARMA(A=AR, B=MA)
     ar = ARMA(A=AR)
@@ -32,7 +32,7 @@ def test_arma_construction():
         ARMA(A=AR, C=X)
 
     AR = ([1, .5, .3, 0, .2, .1, 0, .2, .05, 1, .5, .3], [3, 2, 2])
-    MA = ([1, 02, 0, .1, 0, 0, 1, .3], [2, 2, 2])
+    MA = ([1, 2, 0, .1, 0, 0, 1, .3], [2, 2, 2])
     TREND = [1, 2]
     arma = ARMA(A=AR, B=MA, TREND=TREND)
     TREND = [[1, 2], [3, 4]]
