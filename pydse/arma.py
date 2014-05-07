@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
 from __future__ import division, print_function, absolute_import
@@ -9,6 +8,9 @@ import numpy as np
 from numpy import linalg
 from scipy import optimize
 
+__author__ = "Florian Wilhelm"
+__copyright__ = "Blue Yonder"
+__license__ = "new BSD"
 
 _logger = logging.getLogger(__name__)
 
