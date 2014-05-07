@@ -35,30 +35,42 @@ class ARMA(object):
     """
     def __init__(self, A=None, B=None, C=None, TREND=None, rand_state=None):
         self.A = np.asarray(A[0]).reshape(A[1], order='F')
-        self.B = np.asarray(B[0]).reshape(B[1], order='F') if B else np.zeros(shape=A[1])
-        self.C = np.asarray(C[0]).reshape(C[1], order='F') if C else np.empty((0,))
-        self.TREND = np.asarray(TREND) if TREND is not None else None
+        if B is not None:
+            self.B = np.asarray(B[0]).reshape(B[1], order='F')
+        else:
+            self.B = np.zeros(shape=A[1])
+        if C is not None:
+            self.C = np.asarray(C[0]).reshape(C[1], order='F')
+        else:
+            self.C = np.empty((0,))
+        if TREND is not None:
+            self.TREND = np.asarray(TREND)
+        else:
+            self.TREND = None
         self._check_consistency(self.A, self.B, self.C, self.TREND)
 
         self.Aconst = np.zeros(self.A.shape, dtype=np.bool)
         self.Bconst = np.zeros(self.B.shape, dtype=np.bool)
         self.Cconst = np.zeros(self.C.shape, dtype=np.bool)
 
-        self.rand = rand_state if rand_state is not None else np.random.RandomState()
+        if rand_state is not None:
+            self.rand = rand_state
+        else:
+            self.rand = np.random.RandomState()
 
     def _set_array_by_mask(self, arr, mask, values):
-        mask = np.where(mask == False)
+        mask = np.where(~mask)
         arr[mask] = values
 
     def _get_array_by_mask(self, arr, mask):
-        mask = np.where(mask == False)
+        mask = np.where(~mask)
         return arr[mask]
 
     def _get_num_non_consts(self):
-        a = np.sum(self.Aconst == False)
-        b = np.sum(self.Bconst == False)
-        c = np.sum(self.Cconst == False)
-        return (a, b, c)
+        a = np.sum(~self.Aconst)
+        b = np.sum(~self.Bconst)
+        c = np.sum(~self.Cconst)
+        return a, b, c
 
     @property
     def non_consts(self):
@@ -72,7 +84,8 @@ class ARMA(object):
     def non_consts(self, values):
         a, b, c = self._get_num_non_consts()
         if values.size != a + b + c:
-            raise ARMAError("Number of values does not equal number of non-constants")
+            raise ARMAError("Number of values does not equal number "
+                            "of non-constants")
         A_values = values[:a]
         B_values = values[a:a + b]
         C_values = values[a + b:a + b + c]
@@ -87,21 +100,26 @@ class ARMA(object):
         if n != A.shape[2] or len(A.shape) > 3:
             raise ARMAError("A needs to be of shape (a, p, p)")
         if n != B.shape[1] or (n != B.shape[2] or len(B.shape) > 3):
-            raise ARMAError("B needs to be of shape (b, p, p) with A being of shape (a, p, p)")
+            raise ARMAError("B needs to be of shape (b, p, p) with A being "
+                            "of shape (a, p, p)")
         if C.size != 0 and (n != C.shape[1] or len(C.shape) > 3):
-            raise ARMAError("C needs to be of shape (c, p, m) with A being of shape (a, p, p)")
+            raise ARMAError("C needs to be of shape (c, p, m) with A being "
+                            "of shape (a, p, p)")
         if TREND is not None:
             if len(TREND.shape) > 2:
-                raise ARMAError("TREND needs to of shape (p, t) with A being of shape (a, p, p)")
-            elif len(TREND.shape) == 2 and  n != TREND.shape[0]:
-                raise ARMAError("TREND needs to of shape (p, t) with A being of shape (a, p, p)")
+                raise ARMAError("TREND needs to of shape (p, t) with A being "
+                                "of shape (a, p, p)")
+            elif len(TREND.shape) == 2 and n != TREND.shape[0]:
+                raise ARMAError("TREND needs to of shape (p, t) with A being "
+                                "of shape (a, p, p)")
             elif len(TREND.shape) == 1 and n != TREND.shape[0]:
-                raise ARMAError("TREND needs to of shape (p, t) with A being of shape (a, p, p)")
+                raise ARMAError("TREND needs to of shape (p, t) with A being "
+                                "of shape (a, p, p)")
 
     def _get_noise(self, samples, p, lags):
         w0 = self.rand.normal(size=lags * p).reshape((lags, p))
         w = self.rand.normal(size=samples * p).reshape((samples, p))
-        return (w0, w)
+        return w0, w
 
     def _prep_y(self, trend, dim_t, dim_p):
         if trend is not None:
@@ -119,8 +137,8 @@ class ARMA(object):
         a, b = self.A.shape[0], self.B.shape[0]
         c = self.C.shape[0] if self.C else 0
         m = self.C.shape[2] if self.C else 0
-        y0 = y0 if y0 else np.zeros((a, p))
-        u0 = u0 if u0 else np.zeros((c, m))
+        y0 = y0 if y0 is not None else np.zeros((a, p))
+        u0 = u0 if u0 is not None else np.zeros((c, m))
 
         # generate white noise if necessary
         if not noise:
@@ -244,7 +262,8 @@ class ARMA(object):
             # Check for degeneracy
             non_degen_mask = s > s[0] * np.sqrt(np.finfo(np.float).eps)
             if not np.all(non_degen_mask):
-                _logger.warn("Covariance matrix is singular. Working on subspace")
+                _logger.warn("Covariance matrix is singular. "
+                             "Working on subspace")
                 s = s[non_degen_mask]
 
             like1 = 0.5 * sampleT * np.log(np.prod(s))
@@ -261,4 +280,3 @@ class ARMA(object):
 
         x0 = self.non_consts
         return optimize.minimize(cost_function, x0)
-
