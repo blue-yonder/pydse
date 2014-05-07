@@ -25,7 +25,7 @@ __location__ = os.path.join(os.getcwd(), os.path.dirname(
 MAIN_PACKAGE = "pydse"
 DESCRIPTION = "Dynamic System Estimation for Python"
 LICENSE = "new BSD"
-URL = "None"
+URL = "https://github.com/blue-yonder/pydse"
 AUTHOR = "Florian Wilhelm"
 EMAIL = "Florian.Wilhelm@blue-yonder.com"
 
