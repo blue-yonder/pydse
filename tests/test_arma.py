@@ -25,7 +25,7 @@ def test_arma_construction():
     ar = ARMA(A=AR)
     armax = ARMA(A=AR, B=MA, C=X)
 
-    MA = ([1, 02, 0, .1], [2, 2, 1])
+    MA = ([1, 0.2, 0, .1], [2, 2, 1])
     X = ([1, 2, 3, 4, 5, 6], [2, 1, 3])
     with pytest.raises(ARMAError):
         ARMA(A=AR, B=MA)
