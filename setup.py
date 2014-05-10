@@ -36,7 +36,15 @@ JUNIT_XML = False
 # Add here all kinds of additional classifiers as defined under
 # https://pypi.python.org/pypi?%3Aaction=list_classifiers
 CLASSIFIERS = ['Development Status :: 2 - Pre-Alpha',
-               'Programming Language :: Python']
+               'License :: OSI Approved :: BSD License',
+               'Programming Language :: Python',
+               'Programming Language :: Python :: 2.6',
+               'Programming Language :: Python :: 2.7',
+               'Programming Language :: Python :: 3.2',
+               'Programming Language :: Python :: 3.3',
+               'Intended Audience :: Science/Research',
+               'Topic :: Scientific/Engineering :: Mathematics'
+               ]
 
 # Add here console scripts like ['hello_world = pydse.module:function']
 CONSOLE_SCRIPTS = []
