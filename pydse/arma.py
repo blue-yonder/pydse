@@ -33,7 +33,7 @@ class ARMA(object):
         u: (mxt) matrix of input variables
         TREND: (pxt) matrix like y or a p-dim vector
     """
-    def __init__(self, A=None, B=None, C=None, TREND=None, rand_state=None):
+    def __init__(self, A, B=None, C=None, TREND=None, rand_state=None):
         self.A = np.asarray(A[0]).reshape(A[1], order='F')
         if B is not None:
             self.B = np.asarray(B[0]).reshape(B[1], order='F')
@@ -58,14 +58,6 @@ class ARMA(object):
         else:
             self.rand = np.random.RandomState()
 
-    def _set_array_by_mask(self, arr, mask, values):
-        mask = np.where(~mask)
-        arr[mask] = values
-
-    def _get_array_by_mask(self, arr, mask):
-        mask = np.where(~mask)
-        return arr[mask]
-
     def _get_num_non_consts(self):
         a = np.sum(~self.Aconst)
         b = np.sum(~self.Bconst)
@@ -74,10 +66,9 @@ class ARMA(object):
 
     @property
     def non_consts(self):
-        a, b, c = self._get_num_non_consts()
-        A = self._get_array_by_mask(self.A, self.Aconst)
-        B = self._get_array_by_mask(self.B, self.Bconst)
-        C = self._get_array_by_mask(self.C, self.Cconst)
+        A = self.A[~self.Aconst]
+        B = self.B[~self.Bconst]
+        C = self.C[~self.Cconst]
         return np.hstack([A, B, C])
 
     @non_consts.setter
@@ -89,9 +80,9 @@ class ARMA(object):
         A_values = values[:a]
         B_values = values[a:a + b]
         C_values = values[a + b:a + b + c]
-        self._set_array_by_mask(self.A, self.Aconst, A_values)
-        self._set_array_by_mask(self.B, self.Bconst, B_values)
-        self._set_array_by_mask(self.C, self.Cconst, C_values)
+        self.A[~self.Aconst] = A_values
+        self.B[~self.Bconst] = B_values
+        self.C[~self.Cconst] = C_values
 
     def _check_consistency(self, A, B, C, TREND):
         if A is None:
@@ -141,7 +132,7 @@ class ARMA(object):
         u0 = u0 if u0 is not None else np.zeros((c, m))
 
         # generate white noise if necessary
-        if not noise:
+        if noise is None:
             noise = self._get_noise(sampleT, p, b)
         w0, w = noise
 
@@ -182,7 +173,7 @@ class ARMA(object):
         m = self.C.shape[2] if self.C else 0
         TREND = self.TREND
 
-        # ToDo: Let these be parameters and do consistensy check
+        # ToDo: Let these be parameters and do consistency check
         sampleT = predictT = y.shape[0]
         pred_err = np.zeros((sampleT, p))
 
