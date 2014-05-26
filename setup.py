@@ -38,10 +38,8 @@ JUNIT_XML = False
 CLASSIFIERS = ['Development Status :: 2 - Pre-Alpha',
                'License :: OSI Approved :: BSD License',
                'Programming Language :: Python',
-               'Programming Language :: Python :: 2.6',
                'Programming Language :: Python :: 2.7',
-               'Programming Language :: Python :: 3.2',
-               'Programming Language :: Python :: 3.3',
+               'Programming Language :: Python :: 3.4',
                'Intended Audience :: Science/Research',
                'Topic :: Scientific/Engineering :: Mathematics'
                ]
