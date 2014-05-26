@@ -1,15 +1,19 @@
 language: python
-python:
-  - 2.6
-  - 2.7
-  - 3.2
-  - 3.3
+virtualenv:
+  system_site_packages: true
+env:
+  matrix:
+    - DISTRIB="ubuntu" PYTHON_VERSION="2.7" COVERAGE="true"
+    - DISTRIB="conda" PYTHON_VERSION="2.6"
+      NUMPY_VERSION="1.6.2" SCIPY_VERSION="0.11.0"
+    - DISTRIB="conda" PYTHON_VERSION="3.4"
+      NUMPY_VERSION="1.8.1" SCIPY_VERSION="0.13.3"
 install:
-  - sudo apt-get install build-essential gfortran python-dev python-numpy python-setuptools python-scipy libatlas-dev libatlas-base-dev
+  - source tests/install.sh
   - pip install -vq -r requirements.txt
-  - pip install coveralls
 script:
   - python setup.py test 
 after_success:
-  - coveralls
-
+  - if [[ "$COVERAGE" == "true" ]]; then coveralls || echo "failed"; fi
+cache:
+  - apt
