@@ -66,23 +66,20 @@ class ARMA(object):
 
     @property
     def non_consts(self):
-        A = self.A[~self.Aconst]
-        B = self.B[~self.Bconst]
-        C = self.C[~self.Cconst]
-        return np.hstack([A, B, C])
+        a = self.A[~self.Aconst]
+        b = self.B[~self.Bconst]
+        c = self.C[~self.Cconst]
+        return np.hstack([a, b, c])
 
     @non_consts.setter
     def non_consts(self, values):
-        a, b, c = self._get_num_non_consts()
-        if values.size != a + b + c:
+        parts = np.cumsum(self._get_num_non_consts())
+        if values.size != parts[2]:
             raise ARMAError("Number of values does not equal number "
                             "of non-constants")
-        A_values = values[:a]
-        B_values = values[a:a + b]
-        C_values = values[a + b:a + b + c]
-        self.A[~self.Aconst] = A_values
-        self.B[~self.Bconst] = B_values
-        self.C[~self.Cconst] = C_values
+        self.A[~self.Aconst] = values[:parts[0]]
+        self.B[~self.Bconst] = values[parts[0]:parts[1]]
+        self.C[~self.Cconst] = values[parts[1]:parts[2]]
 
     def _check_consistency(self, A, B, C, TREND):
         if A is None:

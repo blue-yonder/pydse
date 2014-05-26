@@ -6,3 +6,4 @@ setuptools
 six
 numpy
 scipy
+pandas

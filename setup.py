@@ -185,6 +185,8 @@ def setup_package():
           install_requires=install_reqs,
           cmdclass=cmdclass,
           tests_require=['pytest-cov', 'pytest'],
+          include_package_data=True,
+          package_data={MAIN_PACKAGE: ['data/*']},
           command_options=command_options,
           entry_points={'console_scripts': CONSOLE_SCRIPTS})
 
