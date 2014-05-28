@@ -1,5 +1,4 @@
 matplotlib
-pandas
 patsy
 statsmodels
 
