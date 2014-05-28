@@ -1,7 +1,3 @@
-setuptools
 six
 numpy
 scipy
-pandas
-patsy
-statsmodels
