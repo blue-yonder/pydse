@@ -1,28 +1,69 @@
 =====
-pydse
+PyDSE
 =====
 
-This is the documentation of **pydse**.
+Toolset for Dynamic System Estimation for time series inspired by
+`DSE <http://cran.r-project.org/web/packages/dse/index.html>`_.
+It is in a pre-alpha state and only includes ARMA models right now.
 
-.. note::
+The definition of an ARMA model is:
 
-    This is the main page of your project's `Sphinx <http://sphinx-doc.org/>`_
-    documentation. It is formatted in `reStructuredText
-    <http://sphinx-doc.org/rest.html>`__. Add additional pages by creating
-    rst-files in ``docs`` and adding them to the `toctree
-    <http://sphinx-doc.org/markup/toctree.html>`_ below. Use then
-    `references <http://sphinx-doc.org/markup/inline.html>`__ in order to link
-    them from this page. It is also possible to refer to the documentation of
-    other Python packages with the `Python domain syntax
-    <http://sphinx-doc.org/domains.html#the-python-domain>`__. By default you
-    can reference the documentation of `Sphinx <http://sphinx.pocoo.org>`__,
-    `Python <http://docs.python.org/>`__, `matplotlib
-    <http://matplotlib.sourceforge.net>`__, `NumPy
-    <http://docs.scipy.org/doc/numpy>`__, `Scikit-Learn
-    <http://scikit-learn.org/stable>`__, `Pandas
-    <http://pandas.pydata.org/pandas-docs/stable>`__, `SciPy
-    <http://docs.scipy.org/doc/scipy/reference/>`__. You can add more by
-    extending the ``intersphinx_mapping`` in your Sphinx's ``conf.py``.
+.. math::
+
+    A(L)y_t = B(L)e_t + C(L)u_t
+
+where :math:`L` is the *lag* operator, :math:`y_t` a :math:`p`-dimensional
+vector of observed output variables, :math:`e_t` a :math:`p`-dimensional vector
+of white noise and :math:`u_t` a :math:`m`-dimensional vector of input variables.
+Since :math:`A, B` and :math:`C` are matrices in the lag shift operator, we have
+:math:`A(L)` is a :math:`a \times p \times p` tensor to define auto-regression,
+:math:`B(L)` is a :math:`b \times p \times p` tensor to moving-average and
+:math:`C(L)` is a :math:`c \times p \times m` tensor to account for the input
+variables.
+
+Create and simulate an ARMA model
+=================================
+
+We create a simple ARMA model with matrices:
+
+.. math::
+
+    A(L) = \left( \begin{array}{cc}
+    1+0.5L1+0.3L2 & 0+0.2L1+0.1L2\\
+    0+0.2L1+0.05L2 & 1+0.5L1+0.3L2\end{array} \right),
+
+    B(L) = \left( \begin{array}{cc}
+    1+0.2L1 & 0+0.1L1\\
+    0+0.0L1 & 1+0.3L1\end{array} \right)
+
+.. plot::
+    :include-source:
+    :context:
+    :nofigs:
+
+    import pandas as pd
+    import numpy as np
+    import matplotlib.pylab as pl
+    from pydse.arma import ARMA
+
+    AR = (np.array([1, .5, .3, 0, .2, .1, 0, .2, .05, 1, .5, .3]),
+          np.array([3, 2, 2]))
+    MA = (np.array([1, .2, 0, .1, 0, 0, 1, .3]), np.array([2, 2, 2]))
+    arma = ARMA(A=AR, B=MA)
+
+Then by simulating we get:
+
+.. plot::
+    :include-source:
+    :context:
+
+    np.random.seed(42)
+    sim_data = arma.simulate(sampleT=100)
+    df = pd.DataFrame(data=sim_data, index=pd.date_range('1/1/2011', periods=sim_data.shape[0], freq='d'))
+    df.plot()
+    pl.show()
+
+
 
 Contents
 ========

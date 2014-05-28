@@ -24,7 +24,7 @@ class ARMA(object):
     """
         A(L)y(t) = B(L)e(t) + C(L)u(t) - TREND(t)
 
-        L: Shift operator
+        L: Lag/Shift operator
         A: (axpxp) tensor to define auto-regression
         B: (bxpxp) tensor to define moving-average
         C: (cxpxm) tensor for external input
