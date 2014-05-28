@@ -53,10 +53,13 @@ class ARMA(object):
         self.Bconst = np.zeros(self.B.shape, dtype=np.bool)
         self.Cconst = np.zeros(self.C.shape, dtype=np.bool)
 
-        if rand_state is not None:
+        if rand_state is None:
+            self.rand = np.random.RandomState()
+        elif isinstance(rand_state, np.random.RandomState):
             self.rand = rand_state
         else:
-            self.rand = np.random.RandomState()
+            self.rand = np.random.RandomState(rand_state)
+
 
     def _get_num_non_consts(self):
         a = np.sum(~self.Aconst)

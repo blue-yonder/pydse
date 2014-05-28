@@ -1,9 +1,7 @@
-# Add your requirements here like:
-# numpy
-# scipy>=0.9
-
 setuptools
 six
 numpy
 scipy
 pandas
+patsy
+statsmodels
