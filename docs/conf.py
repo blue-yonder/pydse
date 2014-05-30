@@ -38,7 +38,7 @@ if on_rtd:
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.todo',
               'sphinx.ext.autosummary', 'sphinx.ext.viewcode', 'sphinx.ext.coverage',
               'sphinx.ext.doctest', 'sphinx.ext.ifconfig', 'sphinx.ext.pngmath',
-              'matplotlib.sphinxext.mathmpl', 'matplotlib.sphinxext.only_directives',
+              'matplotlib.sphinxext.only_directives',
               'matplotlib.sphinxext.plot_directive', 'IPython.sphinxext.ipython_directive']
 
 # Add any paths that contain templates here, relative to this directory.
