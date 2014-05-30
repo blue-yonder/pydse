@@ -1,5 +1,3 @@
 pandas
 matplotlib
 patsy
-statsmodels
-
