@@ -47,6 +47,11 @@ CLASSIFIERS = ['Development Status :: 2 - Pre-Alpha',
 # Add here console scripts like ['hello_world = pydse.module:function']
 CONSOLE_SCRIPTS = []
 
+# temporarily redirect configuration directory
+# to prevent matplotlib import testing for
+#  writeable directory outside of sandbox
+os.environ['MPLCONFIGDIR'] = "."
+
 # Versioneer configuration
 versioneer.versionfile_source = os.path.join(MAIN_PACKAGE, '_version.py')
 versioneer.versionfile_build = os.path.join(MAIN_PACKAGE, '_version.py')
