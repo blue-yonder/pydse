@@ -22,7 +22,7 @@ We create a simple ARMA model for a two dimensional output vector with matrices:
 
     A(L) = \left( \begin{array}{cc}
     1+0.5L1+0.3L2 & 0+0.2L1+0.1L2\\
-    0+0.2L1+0.05L2 & 1+0.5L1+0.3L2\end{array} \right)
+    0+0.2L1+0.05L2 & 1+0.5L1+0.3L2\end{array} \right),
 
 .. math::
 
