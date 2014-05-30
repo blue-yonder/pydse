@@ -12,7 +12,6 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   Overview <index>
    Create and Simulate <simulate>
    Module Reference <_rst/modules>
 

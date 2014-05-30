@@ -64,7 +64,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pydse'
-copyright = u'2014, Florian Wilhelm'
+copyright = u'2014, Blue Yonder'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -209,8 +209,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'user_guide.tex', u'pydse Documentation',
-   u'Florian Wilhelm', 'manual'),
+  ('index', 'PyDSE.tex', u'PyDSE Documentation',
+   u'Blue Yonder', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
