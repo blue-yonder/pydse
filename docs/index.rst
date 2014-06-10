@@ -13,6 +13,7 @@ Contents
    :maxdepth: 2
 
    Create and Simulate <simulate>
+   Estimation of Parameters <estimate>
    Module Reference <_rst/modules>
 
 

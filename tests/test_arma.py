@@ -56,7 +56,7 @@ def test_arma_construction():
         ARMA(A=AR, B=MA, TREND=TREND)
 
 
-def test_simulate():
+def test_simulate_arma():
     AR = (np.array([1, .5, .3, 0, .2, .1, 0, .2, .05, 1, .5, .3]),
           np.array([3, 2, 2]))
     MA = (np.array([1, .2, 0, .1, 0, 0, 1, .3]), np.array([2, 2, 2]))
@@ -99,6 +99,27 @@ def test_simulate():
          -0.05844899, 0.80133515, 1.76057423, 0.74401876, 1.68619050])
     R_result = np.vstack([series0, series1]).T
     result = arma.simulate(sampleT=10, noise=noise)
+    nptest.assert_almost_equal(result, R_result)
+
+    # R simulations results with trend and external series
+    # arma_trend_ext <- ARMA(A=AR, B=MA, C=X, TREND=TREND)
+    # input0 <- array(c(0.1, 0.2, 0.15, 0.05), dim=c(2,2))
+    # input <- array(c(0.1*c(1:10), 0.05*c(1:10)), dim=c(10,2))
+    # R_result_trend_ext <- simulate(arma_trend_ext, noise=noise,
+    # sampleT=sampleT, input0=input0, input=input)
+    X = (np.array([1, .3, 0, .05, 0, 0.1, 1, .3]), np.array([2, 2, 2]))
+    arma = ARMA(A=AR, B=MA, C=X, TREND=TREND)
+    input0 = np.array([0.1, 0.2, 0.15, 0.05]).reshape((2, 2), order='F')
+    input = np.hstack([0.1*np.arange(1, 11), 0.05*np.arange(1, 11)])
+    input = input.reshape((10, 2), order='F')
+    series0 = np.array(
+        [2.7273901, 1.0931375, 0.5122354, -0.8113013, 0.4892429, 0.9042891,
+         1.1312726, 3.4036172, 0.9345114, -0.1201090])
+    series1 = np.array(
+        [1.5827832, 0.4148349, 1.2723942, 0.5128017, 1.8170296, 0.1212361,
+         1.0094895, 1.9917395, 1.0044531, 1.9735374])
+    R_result = np.vstack([series0, series1]).T
+    result = arma.simulate(sampleT=10, noise=noise, u0=input0, u=input)
     nptest.assert_almost_equal(result, R_result)
 
 

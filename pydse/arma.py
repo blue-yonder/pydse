@@ -24,14 +24,14 @@ class ARMA(object):
     """
         A(L)y(t) = B(L)e(t) + C(L)u(t) - TREND(t)
 
-        L: Lag/Shift operator
-        A: (axpxp) tensor to define auto-regression
-        B: (bxpxp) tensor to define moving-average
-        C: (cxpxm) tensor for external input
-        e: (pxt) matrix of unobserved disturbance (white noise)
-        y: (pxt) matrix of observed output variables
-        u: (mxt) matrix of input variables
-        TREND: (pxt) matrix like y or a p-dim vector
+        L: Lag/Shift operator,
+        A: (axpxp) tensor to define auto-regression,
+        B: (bxpxp) tensor to define moving-average,
+        C: (cxpxm) tensor for external input,
+        e: (pxt) matrix of unobserved disturbance (white noise),
+        y: (pxt) matrix of observed output variables,
+        u: (mxt) matrix of input variables,
+        TREND: (pxt) matrix like y or a p-dim vector.
     """
     def __init__(self, A, B=None, C=None, TREND=None, rand_state=None):
         self.A = np.asarray(A[0]).reshape(A[1], order='F')
@@ -42,7 +42,7 @@ class ARMA(object):
         if C is not None:
             self.C = np.asarray(C[0]).reshape(C[1], order='F')
         else:
-            self.C = np.empty((0,))
+            self.C = np.empty((0, 0, 0))
         if TREND is not None:
             self.TREND = np.asarray(TREND)
         else:
@@ -123,11 +123,11 @@ class ARMA(object):
             y = np.zeros((dim_t, dim_p))
         return y
 
-    def simulate(self, y0=None, u0=None, sampleT=100, noise=None):
+    def simulate(self, y0=None, u0=None, u=None, sampleT=100, noise=None):
         p = self.A.shape[1]
         a, b = self.A.shape[0], self.B.shape[0]
-        c = self.C.shape[0] if self.C else 0
-        m = self.C.shape[2] if self.C else 0
+        c = self.C.shape[0] if self.C is not None else 0
+        m = self.C.shape[2] if self.C is not None else 0
         y0 = y0 if y0 is not None else np.zeros((a, p))
         u0 = u0 if u0 is not None else np.zeros((c, m))
 
@@ -140,8 +140,8 @@ class ARMA(object):
         A0inv = linalg.inv(self.A[0, :, :])
         A = np.tensordot(self.A, A0inv, axes=1)
         B = np.tensordot(self.B, A0inv, axes=1)
-        if self.C:
-            C = np.tensordot(self.C, A0inv, axes=1)
+        if c != 0:
+            C = np.einsum('ijk,kl', self.C, A0inv)
 
         # perform simulation
         y = self._prep_y(self.TREND, sampleT, p)

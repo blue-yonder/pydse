@@ -9,6 +9,7 @@ library('dse')
 # For the simulation unittest
 AR <- array(c(1, .5, .3, 0, .2, .1, 0, .2, .05, 1, .5, .3), c(3,2,2))
 MA <- array(c(1, .2, 0, .1, 0, 0, 1, .3), c(2,2,2))
+X <- array(c(1, .3, 0, .05, 0, 0.1, 1, .3), c(2,2,2))
 arma <- ARMA(A=AR, B=MA, C=NULL)
 
 sampleT <- 10
@@ -21,6 +22,15 @@ R_result <- simulate(arma, noise=noise, sampleT=sampleT)
 TREND <- c(1,2)
 arma_trend <- ARMA(A=AR, B=MA, C=NULL, TREND=TREND)
 R_result_trend <- simulate(arma_trend, noise=noise, sampleT=sampleT)
+
+arma_trend_ext <- ARMA(A=AR, B=MA, C=X, TREND=TREND)
+input0 <- array(c(0.1, 0.2, 0.15, 0.05), dim=c(2,2))
+input <- array(c(0.1*c(1:10), 0.05*c(1:10)), dim=c(10,2))
+R_result_trend_ext <- simulate(arma_trend_ext,
+                               noise=noise,
+                               sampleT=sampleT,
+                               input0=input0,
+                               input=input)
 
 # Results for the forecast unittest
 arma <- l(arma, R_result)
@@ -44,4 +54,4 @@ arma <- ARMA(A=AR, B=MA)
 arma <- fixConstants(arma)
 arma <- estMaxLik(obj1=arma, obj2=simu)
 
-tfplot(arma)
+#tfplot(arma)
