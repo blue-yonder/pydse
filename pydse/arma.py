@@ -129,42 +129,35 @@ class ARMA(object):
         c = self.C.shape[0] if self.C is not None else 0
         m = self.C.shape[2] if self.C is not None else 0
         y0 = y0 if y0 is not None else np.zeros((a, p))
+        u = u if u0 is not None else np.zeros((c, m))
         u0 = u0 if u0 is not None else np.zeros((c, m))
-
-        # generate white noise if necessary
         if noise is None:
             noise = self._get_noise(sampleT, p, b)
         w0, w = noise
+        assert y0.shape[0] >= a
+        assert w0.shape[0] >= b
+        assert u0.shape[0] >= c
 
-        # diagonalize with respect to matrix of leading coefficients
+        # diagonalize with respect to matrix of A's leading coefficients
         A0inv = linalg.inv(self.A[0, :, :])
         A = np.tensordot(self.A, A0inv, axes=1)
         B = np.tensordot(self.B, A0inv, axes=1)
         if c != 0:
             C = np.einsum('ijk,kl', self.C, A0inv)
+        else:
+            C = np.zeros((c, p, m))
 
-        # perform simulation
         y = self._prep_y(self.TREND, sampleT, p)
-        for t in xrange(sampleT):
-            for l in xrange(1, a):
-                if t - l <= -1:
-                    y[t, :] = y[t, :] - np.dot(A[l, :, :], y0[l - t - 1, :])
-                else:
-                    y[t, :] = y[t, :] - np.dot(A[l, :, :], y[t - l, :])
-
-            for l in xrange(b):
-                if t - l <= -1:
-                    y[t, :] = y[t, :] + np.dot(B[l, :, :], w0[l - t - 1, :])
-                else:
-                    y[t, :] = y[t, :] + np.dot(B[l, :, :], w[t - l, :])
-
-            for l in xrange(c):
-                if t - l <= -1:
-                    y[t, :] = y[t, :] + np.dot(C[l, :, :], u0[l - t - 1, :])
-                else:
-                    y[t, :] = y[t, :] + np.dot(C[l, :, :], u[t - l, :])
-
-        return y
+        y = np.vstack((y0[a::-1, ...], y))
+        w = np.vstack((w0[b::-1, ...], w))
+        u = np.vstack((u0[c::-1, ...], u))
+        
+        # perform simulation
+        for t in xrange(a, sampleT+a):
+            y[t, :] -= np.einsum('ikj, ij', A[1:a, :, :], y[t-1:t-a:-1, :])
+            y[t, :] += np.einsum('ikj, ij', B[:b, :, :], w[t-a+b:t-a:-1, :])
+            y[t, :] += np.einsum('ikj, ij', C[:c, :, :], u[t-a+b:t-a:-1, :])
+        return y[a:]
 
     def forecast(self, y, u=None):
         p = self.A.shape[1]
@@ -183,12 +176,12 @@ class ARMA(object):
             else:
                 TREND = np.tile(self.TREND, (sampleT, 1))
 
-        # diagonalize with respect to matrix of leading coefficients
+        # diagonalize with respect to matrix of B's leading coefficients
         B0inv = linalg.inv(self.B[0, :, :])
         A = np.tensordot(self.A, B0inv, axes=1)
         B = np.tensordot(self.B, B0inv, axes=1)
-        if self.C:
-            C = np.tensordot(self.C, B0inv, axes=1)
+        if c != 0:
+            C = np.einsum('ijk,kl', self.C, B0inv)
         if TREND is not None:
             TREND = np.dot(TREND, B0inv)
 
@@ -254,7 +247,7 @@ class ARMA(object):
             non_degen_mask = s > s[0] * np.sqrt(np.finfo(np.float).eps)
             if not np.all(non_degen_mask):
                 _logger.warn("Covariance matrix is singular. "
-                             "Working on subspace")
+                             "Working on subspace.")
                 s = s[non_degen_mask]
 
             like1 = 0.5 * sampleT * np.log(np.prod(s))
