@@ -147,16 +147,18 @@ class ARMA(object):
         else:
             C = np.zeros((c, p, m))
 
+        # prepend start values to the series
         y = self._prep_y(self.TREND, sampleT, p)
         y = np.vstack((y0[a::-1, ...], y))
         w = np.vstack((w0[b::-1, ...], w))
         u = np.vstack((u0[c::-1, ...], u))
         
-        # perform simulation
+        # perform simulation by multiplying the lagged matrices to the vectors
+        # and summing over the different lags
         for t in xrange(a, sampleT+a):
-            y[t, :] -= np.einsum('ikj, ij', A[1:a, :, :], y[t-1:t-a:-1, :])
-            y[t, :] += np.einsum('ikj, ij', B[:b, :, :], w[t-a+b:t-a:-1, :])
-            y[t, :] += np.einsum('ikj, ij', C[:c, :, :], u[t-a+b:t-a:-1, :])
+            y[t, :] -= np.einsum('ikj, ij', A[1:, :, :], y[t-1:t-a:-1, :])
+            y[t, :] += np.einsum('ikj, ij', B, w[t-a+b:t-a:-1, :])
+            y[t, :] += np.einsum('ikj, ij', C, u[t-a+b:t-a:-1, :])
         return y[a:]
 
     def forecast(self, y, u=None):
