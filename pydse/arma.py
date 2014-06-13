@@ -112,16 +112,15 @@ class ARMA(object):
         w = self.rand.normal(size=samples * p).reshape((samples, p))
         return w0, w
 
-    def _prep_y(self, trend, dim_t, dim_p):
+    def _prep_trend(self, trend, dim_t, dim_p):
         if trend is not None:
             if len(trend.shape) == 2:
                 assert trend.shape[1] == dim_t
-                y = np.copy(trend)
+                return np.copy(trend)
             else:
-                y = np.tile(trend, (dim_t, 1))
+                return np.tile(trend, (dim_t, 1))
         else:
-            y = np.zeros((dim_t, dim_p))
-        return y
+            return np.zeros((dim_t, dim_p))
 
     def simulate(self, y0=None, u0=None, u=None, sampleT=100, noise=None):
         p = self.A.shape[1]
@@ -148,7 +147,7 @@ class ARMA(object):
             C = np.zeros((c, p, m))
 
         # prepend start values to the series
-        y = self._prep_y(self.TREND, sampleT, p)
+        y = self._prep_trend(self.TREND, sampleT, p)
         y = np.vstack((y0[a::-1, ...], y))
         w = np.vstack((w0[b::-1, ...], w))
         u = np.vstack((u0[c::-1, ...], u))
@@ -166,16 +165,9 @@ class ARMA(object):
         a, b = self.A.shape[0], self.B.shape[0]
         c = self.C.shape[0] if self.C else 0
         m = self.C.shape[2] if self.C else 0
-        TREND = self.TREND
 
         sampleT = y.shape[0]
         predictT = sampleT + horizon
-
-        if TREND is not None:
-            if len(TREND.shape) == 2:
-                assert TREND.shape[1] == sampleT
-            else:
-                TREND = np.tile(self.TREND, (sampleT, 1))
 
         # diagonalize with respect to matrix of B's leading coefficients
         B0inv = linalg.inv(self.B[0, :, :])
@@ -183,11 +175,7 @@ class ARMA(object):
         B = np.tensordot(self.B, B0inv, axes=1)
         if c != 0:
             C = np.einsum('ijk,kl', self.C, B0inv)
-        if TREND is not None:
-            pred_err = -np.dot(TREND, B0inv)
-        else:
-            pred_err = np.zeros((sampleT, p))
-
+        pred_err = -np.dot(self._prep_trend(self.TREND, sampleT, p), B0inv)
         # perform prediction
         for t in xrange(sampleT):
             for l in xrange(a):
