@@ -161,16 +161,15 @@ class ARMA(object):
             y[t, :] += np.einsum('ikj, ij', C, u[t-a+b:t-a:-1, :])
         return y[a:]
 
-    def forecast(self, y, u=None):
+    def forecast(self, y, horizon=0, u=None):
         p = self.A.shape[1]
         a, b = self.A.shape[0], self.B.shape[0]
         c = self.C.shape[0] if self.C else 0
         m = self.C.shape[2] if self.C else 0
         TREND = self.TREND
 
-        # ToDo: Let these be parameters and do consistency check
-        sampleT = predictT = y.shape[0]
-        pred_err = np.zeros((sampleT, p))
+        sampleT = y.shape[0]
+        predictT = sampleT + horizon
 
         if TREND is not None:
             if len(TREND.shape) == 2:
@@ -185,28 +184,24 @@ class ARMA(object):
         if c != 0:
             C = np.einsum('ijk,kl', self.C, B0inv)
         if TREND is not None:
-            TREND = np.dot(TREND, B0inv)
+            pred_err = -np.dot(TREND, B0inv)
+        else:
+            pred_err = np.zeros((sampleT, p))
 
         # perform prediction
         for t in xrange(sampleT):
-            if TREND is not None:
-                vt = -TREND[t, :]
-            else:
-                vt = np.zeros((p,))
-
             for l in xrange(a):
                 if l <= t:
-                    vt = vt + np.dot(A[l, :, :], y[t - l, :])
+                    pred_err[t, :] += np.dot(A[l, :, :], y[t - l, :])
 
             for l in xrange(1, b):
                 if l <= t:
-                    vt = vt - np.dot(B[l, :, :], pred_err[t - l, :])
+                    pred_err[t, :] -= np.dot(B[l, :, :], pred_err[t - l, :])
 
             for l in xrange(c):
                 if l <= t:
-                    vt = vt - np.dot(C[l, :, :], u[t - l, :])
+                    pred_err[t, :] -= np.dot(C[l, :, :], u[t - l, :])
 
-            pred_err[t, :] = vt
 
         pred = np.zeros((predictT, p))
         pred[:sampleT, :] = y[:sampleT, :] - np.dot(pred_err, B[0, :, :])
