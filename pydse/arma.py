@@ -125,8 +125,7 @@ class ARMA(object):
     def simulate(self, y0=None, u0=None, u=None, sampleT=100, noise=None):
         p = self.A.shape[1]
         a, b = self.A.shape[0], self.B.shape[0]
-        c = self.C.shape[0] if self.C is not None else 0
-        m = self.C.shape[2] if self.C is not None else 0
+        c, m = self.C.shape[0], self.C.shape[2]
         y0 = y0 if y0 is not None else np.zeros((a, p))
         u = u if u0 is not None else np.zeros((c, m))
         u0 = u0 if u0 is not None else np.zeros((c, m))
@@ -155,16 +154,18 @@ class ARMA(object):
         # perform simulation by multiplying the lagged matrices to the vectors
         # and summing over the different lags
         for t in xrange(a, sampleT+a):
-            y[t, :] -= np.einsum('ikj, ij', A[1:, :, :], y[t-1:t-a:-1, :])
-            y[t, :] += np.einsum('ikj, ij', B, w[t-a+b:t-a:-1, :])
-            y[t, :] += np.einsum('ikj, ij', C, u[t-a+b:t-a:-1, :])
+            y[t, :] -= np.einsum('ikj, ij', A[1:, ...], y[t-1:t-a:-1, :])
+            if b != 0:
+                y[t, :] += np.einsum('ikj, ij', B, w[t-a+b:t-a:-1, :])
+            if c != 0:
+                y[t, :] += np.einsum('ikj, ij', C, u[t-a+b:t-a:-1, :])
         return y[a:]
 
     def forecast(self, y, horizon=0, u=None):
         p = self.A.shape[1]
         a, b = self.A.shape[0], self.B.shape[0]
-        c = self.C.shape[0] if self.C else 0
-        m = self.C.shape[2] if self.C else 0
+        c, m = self.C.shape[0], self.C.shape[2]
+        u = u if u is not None else np.zeros((c, m))
 
         sampleT = y.shape[0]
         predictT = sampleT + horizon
@@ -175,24 +176,23 @@ class ARMA(object):
         B = np.tensordot(self.B, B0inv, axes=1)
         if c != 0:
             C = np.einsum('ijk,kl', self.C, B0inv)
-        pred_err = -np.dot(self._prep_trend(self.TREND, sampleT, p), B0inv)
-        # perform prediction
+        else:
+            C = np.zeros((c, p, m))
+
+        # calculate directly the residual ...
+        res = -np.dot(self._prep_trend(self.TREND, sampleT, p), B0inv)
+        # and perform prediction
         for t in xrange(sampleT):
-            for l in xrange(a):
-                if l <= t:
-                    pred_err[t, :] += np.dot(A[l, :, :], y[t - l, :])
-
-            for l in xrange(1, b):
-                if l <= t:
-                    pred_err[t, :] -= np.dot(B[l, :, :], pred_err[t - l, :])
-
-            for l in xrange(c):
-                if l <= t:
-                    pred_err[t, :] -= np.dot(C[l, :, :], u[t - l, :])
-
+            la, lb, lc = min(a-1, t), min(b-1, t), min(c-1, t)
+            ba, bb, bc = max(0, t-la), max(0, t-lb), max(0, t-lc)
+            res[t, :] += np.einsum('ikj,ij', A[la::-1, ...], y[ba:t+1, :])
+            if b != 0:
+                res[t, :] -= np.einsum('ikj,ij', B[lb:0:-1, ...], res[bb:t, :])
+            if c != 0:
+                res[t, :] -= np.einsum('ikj,ij', C[lc::-1, ...], u[bc:t+1, :])
 
         pred = np.zeros((predictT, p))
-        pred[:sampleT, :] = y[:sampleT, :] - np.dot(pred_err, B[0, :, :])
+        pred[:sampleT, :] = y[:sampleT, :] - np.dot(res, B[0, :, :])
 
         # ToDo: Implement this!
         if predictT > sampleT:
