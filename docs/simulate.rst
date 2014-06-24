@@ -89,6 +89,7 @@ and `partial autocorrelation function <http://en.wikipedia.org/wiki/Partial_auto
     df = pd.DataFrame(data=sim_data, index=sim_index)
     plot_acf(df[0], lags=10)
     plot_pacf(df[0], lags=10)
+    plt.show()
 
 Find a good introduction to ARMA on the `Decision 411 <http://people.duke.edu/~rnau/Decision411CoursePage.htm>`__
 course page.

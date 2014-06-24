@@ -9,6 +9,9 @@ from numpy import linalg
 from scipy import optimize
 from six.moves import xrange
 
+from . import utils
+from . import stats
+
 __author__ = "Florian Wilhelm"
 __copyright__ = "Blue Yonder"
 __license__ = "new BSD"
@@ -17,7 +20,11 @@ _logger = logging.getLogger(__name__)
 
 
 class ARMAError(Exception):
-    pass
+    def __unicode__(self):
+        return unicode(self.message)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
 
 class ARMA(object):
@@ -32,13 +39,18 @@ class ARMA(object):
         y: (pxt) matrix of observed output variables,
         u: (mxt) matrix of input variables,
         TREND: (pxt) matrix like y or a p-dim vector.
+
+        If B is net set, fall back to VAR, i.e. B(L) = I.
     """
     def __init__(self, A, B=None, C=None, TREND=None, rand_state=None):
         self.A = np.asarray(A[0]).reshape(A[1], order='F')
         if B is not None:
             self.B = np.asarray(B[0]).reshape(B[1], order='F')
         else:
-            self.B = np.zeros(shape=A[1])
+            # Set B(L) = I
+            shape = A[1][1:]
+            self.B = np.empty(shape=np.hstack(([1], shape)))
+            self.B[0] = np.eye(*shape)
         if C is not None:
             self.C = np.asarray(C[0]).reshape(C[1], order='F')
         else:
@@ -59,7 +71,6 @@ class ARMA(object):
             self.rand = rand_state
         else:
             self.rand = np.random.RandomState(rand_state)
-
 
     def _get_num_non_consts(self):
         a = np.sum(~self.Aconst)
@@ -126,9 +137,9 @@ class ARMA(object):
         p = self.A.shape[1]
         a, b = self.A.shape[0], self.B.shape[0]
         c, m = self.C.shape[0], self.C.shape[2]
-        y0 = y0 if y0 is not None else np.zeros((a, p))
-        u = u if u0 is not None else np.zeros((c, m))
-        u0 = u0 if u0 is not None else np.zeros((c, m))
+        y0 = utils.atleast_2d(y0) if y0 is not None else np.zeros((a, p))
+        u = utils.atleast_2d(u) if u0 is not None else np.zeros((c, m))
+        u0 = utils.atleast_2d(u0) if u0 is not None else np.zeros((c, m))
         if noise is None:
             noise = self._get_noise(sampleT, p, b)
         w0, w = noise
@@ -166,6 +177,8 @@ class ARMA(object):
         a, b = self.A.shape[0], self.B.shape[0]
         c, m = self.C.shape[0], self.C.shape[2]
         u = u if u is not None else np.zeros((c, m))
+        if y.ndim == 1:
+            y = utils.atleast_2d(y)
 
         sampleT = y.shape[0]
         predictT = sampleT + horizon
@@ -215,37 +228,13 @@ class ARMA(object):
         if self.C.size != 0:
             set_const(self.C, self.Cconst)
 
-    @staticmethod
-    def negloglike(pred, y):
-        sampleT = pred.shape[0]
-        res = pred[:sampleT, :] - y[:sampleT, :]
-        p = res.shape[1]
-
-        Om = np.dot(res.T, res) / sampleT
-
-        if np.any(np.isnan(Om)) or np.any(Om > 1e100):
-            like1 = like2 = 1e100
-        else:
-            _, s, _ = linalg.svd(Om)
-
-            # Check for degeneracy
-            non_degen_mask = s > s[0] * np.sqrt(np.finfo(np.float).eps)
-            if not np.all(non_degen_mask):
-                _logger.warn("Covariance matrix is singular. "
-                             "Working on subspace.")
-                s = s[non_degen_mask]
-
-            like1 = 0.5 * sampleT * np.log(np.prod(s))
-            like2 = 0.5 * sampleT * len(s)
-
-        const = 0.5 * sampleT * p * np.log(2 * np.pi)
-        return like1 + like2 + const
-
     def est_params(self, y):
+        y = utils.atleast_2d(y)
+
         def cost_function(x):
             self.non_consts = x
             pred = self.forecast(y=y)
-            return self.negloglike(pred, y)
+            return stats.negloglike(pred, y)
 
         x0 = self.non_consts
         return optimize.minimize(cost_function, x0)
