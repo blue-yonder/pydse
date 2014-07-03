@@ -6,6 +6,7 @@ import logging
 import operator
 import itertools
 
+import six
 import numpy as np
 from numpy import linalg
 from scipy import optimize
@@ -291,4 +292,4 @@ def minic(ar_lags, ma_lags, y, crit='BIC'):
                 raise RuntimeError("Unknown method")
         else:
             metric[(ar_lags, ma_lags)] = np.inf
-    return min(metric.iteritems(), key=operator.itemgetter(1))[0]
+    return min(six.iteritems(metric), key=operator.itemgetter(1))[0]
