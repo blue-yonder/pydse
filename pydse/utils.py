@@ -30,7 +30,7 @@ def atleast_2d(arr):
 
 def powerset(iterable):
     """
-    Calculates the power set of an iterable
+    Calculates the power set of an iterable.
 
     :param iterable: iterable set
     :return: iterable power set
@@ -53,6 +53,6 @@ def make_lag_arr(lags, fuzz=1e-2):
     """
     lag_size = np.max([0] + list(lags)) + 1
     pol = np.zeros(lag_size)
-    pol[0], pol[list(lags)] = 1, fuzz
+    pol[0], pol[list(lags)] = 1., fuzz
     shape = np.array([lag_size, 1, 1])
     return pol, shape

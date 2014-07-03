@@ -91,7 +91,7 @@ ACF and PACF plots.
 .. plot::
     :include-source:
     :context:
-    
+
     plot_pacf(residual, lags=15)
 
 .. plot::

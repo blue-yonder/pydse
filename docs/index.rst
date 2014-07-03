@@ -15,6 +15,7 @@ Contents
    Create and Simulate <simulate>
    Estimation of Parameters <estimate>
    Forecasting <forecast>
+   Contribution <contrib>
    Module Reference <_rst/modules>
 
 

@@ -252,6 +252,7 @@ class ARMA(object):
         precision ``prec`` are considered constants.
 
         For example:
+
         * 1.1 is constant since abs(1.1 - round(1.1, prec)) < fuzz
         * 0.01 is non constant since abs(0.01 - round(0.01, prec)) > fuzz
         """
