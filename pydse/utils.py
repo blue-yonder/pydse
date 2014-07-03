@@ -16,6 +16,12 @@ _logger = logging.getLogger(__name__)
 
 
 def atleast_2d(arr):
+    """
+    Ensure that an array has at least dimension 2.
+
+    :param arr: array
+    :return: array with dimension of at least 2
+    """
     if arr.ndim > 1:
         return arr
     else:
@@ -38,7 +44,8 @@ def make_lag_arr(lags, fuzz=1e-2):
     Create a lag polynomial that can be used as 1-dim A and B for ARMA.
 
     This function creates a lag polynomial, i.e. 1-dim lag matrix,
-    and sets
+    and sets to parameters that are to be estimated to the ``fuzz``
+    value. Check :obj:`~.arma.ARMA.fix_constants` for further information.
 
     :param lags: list of lags
     :param fuzz: fill value to mark non-constant lags

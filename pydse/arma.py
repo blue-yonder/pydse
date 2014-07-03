@@ -82,6 +82,11 @@ class ARMA(object):
 
     @property
     def non_consts(self):
+        """
+        Parameters of the ARMA model that are non-constant.
+
+        :return: array
+        """
         a = self.A[~self.Aconst]
         b = self.B[~self.Bconst]
         c = self.C[~self.Cconst]
@@ -89,6 +94,11 @@ class ARMA(object):
 
     @non_consts.setter
     def non_consts(self, values):
+        """
+        Set the parameters of the ARMA model that are non-constant.
+
+        :param values: array
+        """
         parts = np.cumsum(self._get_num_non_consts())
         if values.size != parts[2]:
             raise ARMAError("Number of values does not equal number "
@@ -263,7 +273,7 @@ def minic(ar_lags, ma_lags, y, crit='BIC'):
     all_ar_lags = list(utils.powerset(sorted(ar_lags)))
     all_ma_lags = list(utils.powerset(sorted(ma_lags)))
     lags = itertools.product(all_ar_lags, all_ma_lags)
-    lags.next()  # drop case with no AR and MA lags
+    next(lags)  # drop case with no AR and MA lags
     metric = dict()  # metric
     for ar_lags, ma_lags in lags:
         arma = ARMA(A=utils.make_lag_arr(ar_lags),
