@@ -4,11 +4,14 @@ from __future__ import division, print_function, absolute_import
 
 import logging
 
+import pandas as pd
 import numpy as np
 import numpy.testing as nptest
 import pytest
 
 from pydse.arma import ARMA, ARMAError
+from pydse import arma
+from pydse import data
 
 __author__ = "Florian Wilhelm"
 __copyright__ = "Blue Yonder"
@@ -231,3 +234,16 @@ def test_est_params():
 
     nptest.assert_almost_equal(arma_est.A, arma.A, decimal=1)
     nptest.assert_almost_equal(arma_est.B, arma.B, decimal=1)
+
+
+def test_minic():
+    df = data.airline_passengers()
+    df['Trend'] = pd.rolling_mean(df['Passengers'], window=36, min_periods=1)
+    residual = df['Passengers'] / df['Trend']
+
+    ar_lags = [1, 2, 12]
+    ma_lags = [1, 2, 12]
+    lags = arma.minic(ar_lags, ma_lags, residual, crit='AIC')
+    assert lags == ((1, 2, 12), (12,))
+    lags = arma.minic(ar_lags, ma_lags, residual, crit='BIC')
+    assert lags == ((1,), (12,))

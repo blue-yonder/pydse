@@ -3,6 +3,8 @@
 from __future__ import division, print_function, absolute_import
 
 import logging
+import operator
+import itertools
 
 import numpy as np
 from numpy import linalg
@@ -29,18 +31,18 @@ class ARMAError(Exception):
 
 class ARMA(object):
     """
-        A(L)y(t) = B(L)e(t) + C(L)u(t) - TREND(t)
+    A(L)y(t) = B(L)e(t) + C(L)u(t) - TREND(t)
 
-        L: Lag/Shift operator,
-        A: (axpxp) tensor to define auto-regression,
-        B: (bxpxp) tensor to define moving-average,
-        C: (cxpxm) tensor for external input,
-        e: (pxt) matrix of unobserved disturbance (white noise),
-        y: (pxt) matrix of observed output variables,
-        u: (mxt) matrix of input variables,
-        TREND: (pxt) matrix like y or a p-dim vector.
+    * L: Lag/Shift operator,
+    * A: (axpxp) tensor to define auto-regression,
+    * B: (bxpxp) tensor to define moving-average,
+    * C: (cxpxm) tensor for external input,
+    * e: (pxt) matrix of unobserved disturbance (white noise),
+    * y: (pxt) matrix of observed output variables,
+    * u: (mxt) matrix of input variables,
+    * TREND: (pxt) matrix like y or a p-dim vector.
 
-        If B is net set, fall back to VAR, i.e. B(L) = I.
+    If B is net set, fall back to VAR, i.e. B(L) = I.
     """
     def __init__(self, A, B=None, C=None, TREND=None, rand_state=None):
         self.A = np.asarray(A[0]).reshape(A[1], order='F')
@@ -238,3 +240,45 @@ class ARMA(object):
 
         x0 = self.non_consts
         return optimize.minimize(cost_function, x0)
+
+
+def minic(ar_lags, ma_lags, y, crit='BIC'):
+    """
+    Minimum information citerion method to fit ARMA.
+
+    Use the Akaike information criterion (AIC) or
+    Bayesian information criterion (BIC) to determine the
+    most promising AR and MA lags for an ARMA model.
+
+    This method only works for scalar time series, i.e.
+    dim(y[0]) = 1.
+
+    :param ar_lags: list of AR lags to consider
+    :param ma_lags: list of MA lags to consider
+    :param y: target vector or scalar time series
+    :param crit: information criterion ('BIC' or 'AIC')
+    :return: tuple of AR lags and MA lags
+    """
+    assert y.ndim == 1
+    all_ar_lags = list(utils.powerset(sorted(ar_lags)))
+    all_ma_lags = list(utils.powerset(sorted(ma_lags)))
+    lags = itertools.product(all_ar_lags, all_ma_lags)
+    lags.next()  # drop case with no AR and MA lags
+    metric = dict()  # metric
+    for ar_lags, ma_lags in lags:
+        arma = ARMA(A=utils.make_lag_arr(ar_lags),
+                    B=utils.make_lag_arr(ma_lags))
+        arma.fix_constants()
+        ret_val = arma.est_params(y)
+        if ret_val['success']:
+            k = len(ar_lags) + len(ma_lags)
+            nloglike = ret_val['fun']
+            if crit == 'BIC':
+                metric[(ar_lags, ma_lags)] = stats.bic(nloglike, k, len(y))
+            elif crit == 'AIC':
+                metric[(ar_lags, ma_lags)] = stats.aic(nloglike, k)
+            else:
+                raise RuntimeError("Unknown method")
+        else:
+            metric[(ar_lags, ma_lags)] = np.inf
+    return min(metric.iteritems(), key=operator.itemgetter(1))[0]

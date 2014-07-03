@@ -127,8 +127,7 @@ to estimate those we call `est_params` with our residual time series:
     :include-source:
     :context:
 
-    retval = arma.est_params(residual)
-    print(retval)
+    arma.est_params(residual)
 
 The output of this command tells us if our opimization method converged.
 We can now take a look if our estimated ARMA process produces a similar time
@@ -145,6 +144,36 @@ Mean Absolute Deviation (MAD).
     MAD = np.mean(np.abs(result['pred'][20:] - result['truth'][20:]))
     result.plot(title="MAD: {}".format(MAD))
 
+
+.. plot::
+    :context:
+
+    plt.close()
+
+Instead of guessing the possible parameters by looking at the ACF and PACF
+plots, we can also use the :obj:`~.arma.minic` function. This function takes
+a set of possible AR and MA lags to consider, calculates for each combination
+some information criterion and chooses the most likely.
+Let's say we are quite unsure how to interpret ACF and PACF plots and we just
+use our gut feeling that lag 1 and maybe lag 11, 12 as well as 13 could be
+useful as AR and MA lags. We just provide those guesses to :obj:`~.arma.minic`
+and get the best AR and MA lags. Then, we apply the :obj:`~.utils.make_lag_arr`
+function to generate one dimensional lag matrices that we use as inputs for
+our ARMA model as before. There we go:
+
+.. plot::
+    :include-source:
+    :context:
+
+    from pydse.arma import minic
+    from pydse.utils import make_lag_arr
+    best_ar_lags, best_ma_lags = minic([1, 11, 12, 13], [1, 11, 12, 13], residual)
+    arma = ARMA(A=make_lag_arr(best_ar_lags), B=make_lag_arr(best_ma_lags), rand_state=0)
+    arma.fix_constants()
+    arma.est_params(residual)
+    result = pd.DataFrame({'pred': arma.forecast(residual)[:, 0], 'truth': residual.values})
+    MAD = np.mean(np.abs(result['pred'][20:] - result['truth'][20:]))
+    result.plot(title="AR lags: {}, MA lags: {}, MAD: {}".format(best_ar_lags, best_ma_lags, MAD))
 
 .. plot::
     :context:
