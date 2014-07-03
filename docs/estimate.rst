@@ -91,7 +91,7 @@ ACF and PACF plots.
 .. plot::
     :include-source:
     :context:
-
+    
     plot_pacf(residual, lags=15)
 
 .. plot::
@@ -132,7 +132,8 @@ to estimate those we call `est_params` with our residual time series:
 The output of this command tells us if our opimization method converged.
 We can now take a look if our estimated ARMA process produces a similar time
 series than residual. To quantify this similarity, we should take a look at the
-Mean Absolute Deviation (MAD).
+Mean Absolute Deviation (MAD) where we are in this case only interested in
+predictions starting from month 20 since it takes a while for ARMA to adjust    .
 
 .. plot::
     :include-source:
@@ -142,7 +143,7 @@ Mean Absolute Deviation (MAD).
     result = pd.DataFrame({'pred': arma.forecast(residual)[:, 0],
                            'truth': residual.values})
     MAD = np.mean(np.abs(result['pred'][20:] - result['truth'][20:]))
-    result.plot(title="MAD: {}".format(MAD))
+    result.plot(title="AR lags: 12; MA lags: 1, 13; MAD: {}".format(MAD))
 
 
 .. plot::
@@ -167,13 +168,33 @@ our ARMA model as before. There we go:
 
     from pydse.arma import minic
     from pydse.utils import make_lag_arr
+
     best_ar_lags, best_ma_lags = minic([1, 11, 12, 13], [1, 11, 12, 13], residual)
-    arma = ARMA(A=make_lag_arr(best_ar_lags), B=make_lag_arr(best_ma_lags), rand_state=0)
+    arma = ARMA(A=make_lag_arr(best_ar_lags),
+                B=make_lag_arr(best_ma_lags),
+                rand_state=0)
     arma.fix_constants()
     arma.est_params(residual)
-    result = pd.DataFrame({'pred': arma.forecast(residual)[:, 0], 'truth': residual.values})
+    result = pd.DataFrame({'pred': arma.forecast(residual)[:, 0],
+                           'truth': residual.values})
     MAD = np.mean(np.abs(result['pred'][20:] - result['truth'][20:]))
-    result.plot(title="AR lags: {}, MA lags: {}, MAD: {}".format(best_ar_lags, best_ma_lags, MAD))
+    result.plot(title="AR lags: {}; MA lags: {}; MAD: {}".format(
+        ", ".join(map(str, best_ar_lags)), ", ".join(map(str, best_ma_lags)), MAD))
+
+.. plot::
+    :context:
+
+    plt.close()
+
+Finally, we will apply the necessary back transformation to our time series:
+
+.. plot::
+    :include-source:
+    :context:
+
+    df['Prediction'] = result['pred'].values * df['Trend'].values
+    del df['Trend']
+    df.plot()
 
 .. plot::
     :context:

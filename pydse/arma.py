@@ -147,6 +147,16 @@ class ARMA(object):
             return np.zeros((dim_t, dim_p))
 
     def simulate(self, y0=None, u0=None, u=None, sampleT=100, noise=None):
+        """
+        Simulate an ARMA model.
+
+        :param y0: lagged values of y prior to t=0 in reversed order
+        :param u0: lagged values of u prior to t=0 in reversed order
+        :param u: external input time series
+        :param sampleT: length of the sample to simulate
+        :param noise: random noise time series (default: normal distribution)
+        :return: simulated time series as array
+        """
         p = self.A.shape[1]
         a, b = self.A.shape[0], self.B.shape[0]
         c, m = self.C.shape[0], self.C.shape[2]
@@ -186,6 +196,14 @@ class ARMA(object):
         return y[a:]
 
     def forecast(self, y, horizon=0, u=None):
+        """
+        Calculate an one-step-ahead forecast.
+
+        :param y: output time series
+        :param horizon: number of predictions after y[T_max]
+        :param u: external input time series
+        :return: predicted time series as array
+        """
         p = self.A.shape[1]
         a, b = self.A.shape[0], self.B.shape[0]
         c, m = self.C.shape[0], self.C.shape[2]
@@ -227,6 +245,16 @@ class ARMA(object):
         return pred
 
     def fix_constants(self, fuzz=1e-5, prec=1):
+        """
+        Fix some coefficients as constants depending on their value.
+
+        Coefficient with a absolute difference of ``fuzz`` to a value of
+        precision ``prec`` are considered constants.
+
+        For example:
+        * 1.1 is constant since abs(1.1 - round(1.1, prec)) < fuzz
+        * 0.01 is non constant since abs(0.01 - round(0.01, prec)) > fuzz
+        """
         @np.vectorize
         def is_const(x):
             return abs(x - round(x, prec)) < fuzz
@@ -242,6 +270,12 @@ class ARMA(object):
             set_const(self.C, self.Cconst)
 
     def est_params(self, y):
+        """
+        Maximum likelihood estimation of the ARMA model's coefficients.
+
+        :param y: output series
+        :return: optimization result (:obj:`~scipy.optimize.OptimizeResult`)
+        """
         y = utils.atleast_2d(y)
 
         def cost_function(x):
