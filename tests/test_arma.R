@@ -42,6 +42,18 @@ R_pred_trend <- arma_trend$estimates$pred
 # Results for the negloglike unittest
 R_negloglike <- residualStats(R_pred, R_result$output)$like[1]
 
+# Results for the forecast with horizon unittest
+setRNG(seed=0)
+sampleT <- 15
+noise <- makeTSnoise(sampleT, 2, 2)
+AR <- array(c(1, 0.3, 0.5),c(3,1,1))
+MA <- array(c(1, 0.1), c(2,1,1))
+TREND <- c(1:20)
+arma <- ARMA(A=AR, B=MA, TREND=TREND)
+truth <- simulate(arma, noise=noise, sampleT=sampleT)
+forecast_obj <- forecast(obj=arma, data=truth, horizon=5)
+forecast <- rbind(forecast_obj$pred, forecast_obj$forecast[[1]])
+
 # A parameter estimation test
 AR = array(c(1, 0.3, 0.5),c(3,1,1))
 MA = array(c(1, 0.1), c(2,1,1))

@@ -38,10 +38,10 @@ class ARMA(object):
     * A: (axpxp) tensor to define auto-regression,
     * B: (bxpxp) tensor to define moving-average,
     * C: (cxpxm) tensor for external input,
-    * e: (pxt) matrix of unobserved disturbance (white noise),
-    * y: (pxt) matrix of observed output variables,
+    * e: (txp) matrix of unobserved disturbance (white noise),
+    * y: (txp) matrix of observed output variables,
     * u: (mxt) matrix of input variables,
-    * TREND: (pxt) matrix like y or a p-dim vector.
+    * TREND: (txp) matrix like y or a p-dim vector.
 
     If B is net set, fall back to VAR, i.e. B(L) = I.
     """
@@ -62,7 +62,7 @@ class ARMA(object):
             self.TREND = np.asarray(TREND)
         else:
             self.TREND = None
-        self._check_consistency(self.A, self.B, self.C, self.TREND)
+        self._check_consistency()
 
         self.Aconst = np.zeros(self.A.shape, dtype=np.bool)
         self.Bconst = np.zeros(self.B.shape, dtype=np.bool)
@@ -108,7 +108,8 @@ class ARMA(object):
         self.B[~self.Bconst] = values[parts[0]:parts[1]]
         self.C[~self.Cconst] = values[parts[1]:parts[2]]
 
-    def _check_consistency(self, A, B, C, TREND):
+    def _check_consistency(self):
+        A, B, C, TREND = self.A, self.B, self.C, self.TREND
         if A is None:
             raise ARMAError("A needs to be set for an ARMA model")
         n = A.shape[1]
@@ -122,13 +123,13 @@ class ARMA(object):
                             "of shape (a, p, p)")
         if TREND is not None:
             if len(TREND.shape) > 2:
-                raise ARMAError("TREND needs to of shape (p, t) with A being "
+                raise ARMAError("TREND needs to of shape (t, p) with A being "
                                 "of shape (a, p, p)")
-            elif len(TREND.shape) == 2 and n != TREND.shape[0]:
-                raise ARMAError("TREND needs to of shape (p, t) with A being "
+            elif len(TREND.shape) == 2 and n != TREND.shape[1]:
+                raise ARMAError("TREND needs to of shape (t, p) with A being "
                                 "of shape (a, p, p)")
             elif len(TREND.shape) == 1 and n != TREND.shape[0]:
-                raise ARMAError("TREND needs to of shape (p, t) with A being "
+                raise ARMAError("TREND needs to of shape (t, p) with A being "
                                 "of shape (a, p, p)")
 
     def _get_noise(self, samples, p, lags):
@@ -136,11 +137,16 @@ class ARMA(object):
         w = self.rand.normal(size=samples * p).reshape((samples, p))
         return w0, w
 
-    def _prep_trend(self, trend, dim_t, dim_p):
+    def _prep_trend(self, dim_t, dim_p, t0=0):
+        trend = self.TREND
         if trend is not None:
             if len(trend.shape) == 2:
-                assert trend.shape[1] == dim_t
-                return np.copy(trend)
+                assert trend.shape[1] == dim_p
+                if not trend.shape[0] >= t0+dim_t:
+                    raise ARMAError("TREND needs to be available until "
+                                    "t={}".format(t0+dim_t-1))
+                trend = trend[t0:t0+dim_t, :]
+                return trend
             else:
                 return np.tile(trend, (dim_t, 1))
         else:
@@ -154,7 +160,9 @@ class ARMA(object):
         :param u0: lagged values of u prior to t=0 in reversed order
         :param u: external input time series
         :param sampleT: length of the sample to simulate
-        :param noise: random noise time series (default: normal distribution)
+        :param noise: tuple (w0, w) of a random noise time series. w0 are the
+         lagged values of w prior to t=0 in reversed order. By default a normal
+         distribution for the white noise is assumed.
         :return: simulated time series as array
         """
         p = self.A.shape[1]
@@ -180,7 +188,7 @@ class ARMA(object):
             C = np.zeros((c, p, m))
 
         # prepend start values to the series
-        y = self._prep_trend(self.TREND, sampleT, p)
+        y = self._prep_trend(sampleT, p)
         y = np.vstack((y0[a::-1, ...], y))
         w = np.vstack((w0[b::-1, ...], w))
         u = np.vstack((u0[c::-1, ...], u))
@@ -208,8 +216,7 @@ class ARMA(object):
         a, b = self.A.shape[0], self.B.shape[0]
         c, m = self.C.shape[0], self.C.shape[2]
         u = u if u is not None else np.zeros((c, m))
-        if y.ndim == 1:
-            y = utils.atleast_2d(y)
+        y = utils.atleast_2d(y)
 
         sampleT = y.shape[0]
         predictT = sampleT + horizon
@@ -224,7 +231,7 @@ class ARMA(object):
             C = np.zeros((c, p, m))
 
         # calculate directly the residual ...
-        res = -np.dot(self._prep_trend(self.TREND, sampleT, p), B0inv)
+        res = -np.dot(self._prep_trend(sampleT, p)[:sampleT, ...], B0inv)
         # and perform prediction
         for t in xrange(sampleT):
             la, lb, lc = min(a-1, t), min(b-1, t), min(c-1, t)
@@ -238,9 +245,30 @@ class ARMA(object):
         pred = np.zeros((predictT, p))
         pred[:sampleT, :] = y[:sampleT, :] - np.dot(res, B[0, :, :])
 
-        # ToDo: Implement this!
         if predictT > sampleT:
-            pass
+            A0inv = linalg.inv(self.A[0, :, :])
+            A = np.tensordot(self.A, A0inv, axes=1)
+            B = np.tensordot(self.B, A0inv, axes=1)
+            if c != 0:
+                C = np.einsum('ijk,kl', self.C, A0inv)
+            else:
+                C = np.zeros((c, p, m))
+            pred[sampleT:, :] = np.dot(self._prep_trend(horizon, p, sampleT),
+                                       A0inv)
+            # perform prediction for horizon period
+            for t in xrange(sampleT, predictT):
+                for l in xrange(1, a):
+                    if t - l < sampleT:
+                        pred[t, :] -= np.dot(A[l, :, :], y[t - l, :])
+                    else:
+                        pred[t, :] -= np.dot(A[l, :, :], pred[t - l, :])
+
+                for l in xrange(b):
+                    if t - l < sampleT:
+                        pred[t, :] += np.dot(B[l, :, :], res[t - l, :])
+
+                for l in xrange(c):
+                    pred[t, :] += np.dot(C[l, :, :], u[t - l, :])
 
         return pred
 
@@ -290,7 +318,7 @@ class ARMA(object):
 
 def minic(ar_lags, ma_lags, y, crit='BIC'):
     """
-    Minimum information citerion method to fit ARMA.
+    Minimum information criterion method to fit ARMA.
 
     Use the Akaike information criterion (AIC) or
     Bayesian information criterion (BIC) to determine the

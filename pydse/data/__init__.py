@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 
 """
-Example data files taken from DataMarket (http://datamarket.com/).
-Data is under the default open license:
-http://datamarket.com/data/license/0/default-open-license.html
+Example data files taken from `DataMarket <http://datamarket.com/>`_.
+Data is under the `default open license
+<http://datamarket.com/data/license/0/default-open-license.html>`_:
 """
 
 from __future__ import division, print_function, absolute_import
@@ -50,7 +50,7 @@ def cpi_canada():
 
 def sales_product():
     """
-    Monthly sales of a plastic manufacturer'product, Jan 2001 - May 2012
+    Monthly sales of a plastic manufacturer's product, Jan 2001 - May 2012
     """
     return _get_df_from_file("monthly-sales-of-product-a-for-a.csv")
 

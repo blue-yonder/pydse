@@ -118,10 +118,11 @@ to zero.
     arma = ARMA(A=AR, B=MA, rand_state=0)
     arma.fix_constants()
 
-The `fix_constants()` functions determines the constants of our model. Every
-parameter that has less or equal than one decimal place is considered constant.
-Now the only remaining parameters are the ones that we set to *0.01*. In order
-to estimate those we call `est_params` with our residual time series:
+The :obj:`~.arma.ARMA.fix_constants` functions determines the constants of our
+model. Every parameter that has less or equal than one decimal place is
+considered constant. Now the only remaining parameters are the ones that we set
+to *0.01*. In order to estimate those we call :obj:`~.arma.ARMA.est_params`
+with our residual time series:
 
 .. plot::
     :include-source:

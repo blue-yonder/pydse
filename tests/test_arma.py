@@ -41,14 +41,14 @@ def test_arma_construction():
     ARMA(A=AR, B=MA, TREND=TREND)
     TREND = [[1, 2], [3, 4]]
     ARMA(A=AR, B=MA, TREND=TREND)
-    TREND = [[1, 2, 3], [3, 4, 5]]
+    TREND = [[1, 2], [3, 4], [4, 5]]
     ARMA(A=AR, B=MA, TREND=TREND)
     TREND = [1, 2, 3]
-    # give a (3,) array while expect a (2,) array as p = 2
+    # give a (3,) array while expecting a (2,) array as p = 2
     with pytest.raises(ARMAError):
         ARMA(A=AR, B=MA, TREND=TREND)
     TREND = [[1, 2, 3], [1, 2, 3], [1, 2, 3]]
-    # give a (3, 3) array while expect a (2, X) array as p = 2
+    # give a (3, 3) array while expect a (X, 2) array as p = 2
     with pytest.raises(ARMAError):
         ARMA(A=AR, B=MA, TREND=TREND)
     TREND = [[[1, 2, 3], [1, 2, 3], [1, 2, 3]],
@@ -247,3 +247,21 @@ def test_minic():
     assert lags == ((1, 2, 12), (12,))
     lags = arma.minic(ar_lags, ma_lags, residual, crit='BIC')
     assert lags == ((1,), (12,))
+
+
+def test_forecast_with_horizon():
+    rand_state = np.random.RandomState()
+    rand_state.seed(0)
+    AR = (np.array([1, 0.3, 0.5]), np.array([3, 1, 1]))
+    MA = (np.array([1, .1]), np.array([2, 1, 1]))
+    TREND = np.arange(1, 21)[:, np.newaxis]
+    arma = ARMA(A=AR, B=MA, C=None, TREND=TREND, rand_state=rand_state)
+    truth = np.array([2.4560947, 2.6685808, 1.5132628, 0.7132449, 2.9468331,
+                      4.3717505, 4.1798191, 6.9642557, 5.8248726, 4.0477605,
+                      5.6456776, 7.8781892, 7.4855431, 7.3738101, 9.2561578])
+    result = np.array([1., 1.408781, 1.097358, 2.253321, 3.875388, 4.666472,
+                       4.185586, 4.559602, 5.061279, 4.846770, 6.793335,
+                       8.167651, 7.784758, 7.785321, 9.003934, 9.561470,
+                       9.503480, 10.368221, 11.137794, 11.474551])
+    pred = arma.forecast(truth, horizon=5)
+    nptest.assert_almost_equal(pred, result[:, np.newaxis], decimal=5)
