@@ -1,6 +1,6 @@
-===========
-Forecasting
-===========
+=====================
+Forecast with horizon
+=====================
 
 In chapter :ref:`Estimation of Parameters <estimation-of-parameters>` only
 one-step ahead predictions were applied. So in our example of monthly data,

@@ -16,9 +16,14 @@ It is in a beta state and only includes ARMA models right now.
 Documentation is available under http://pydse.readthedocs.org/.
 
 
-Install
-=======
+Installation
+============
 
 To install in your home directory, use::
 
     python setup.py install --user
+
+If your are using `virtualenv <http://virtualenv.readthedocs.org/en/latest/>`_,
+just use `pip <http://pip.readthedocs.org/>`_::
+
+    pip install pydse
