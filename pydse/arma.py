@@ -318,17 +318,23 @@ class ARMA(UnicodeMixin):
     def _print_matrix(self, matrix):
         def join_with_lag(arr):
             poly = str(arr[0])
-            for i, val in enumerate(xrange(1, arr.size), start=1):
-                poly += '+{}L{}'.format(val, i)
+            for i, val in enumerate(arr[1:], start=1):
+                if val != 0.:
+                    poly += '{:+.3}L{}'.format(val, i)
             return poly
 
         res_str = ''
         i_max, j_max, k_max = matrix.shape
+        mat_str = np.empty((j_max, k_max), dtype=object)
         for j in xrange(j_max):
-            row_lags = list()
             for k in xrange(k_max):
-                row_lags.append(join_with_lag(matrix[:, j, k]))
-            res_str += '\t'.join(row_lags) + '\n'
+                mat_str[j, k] = join_with_lag(matrix[:, j, k])
+        col_widths = [max(map(len, mat_str[:, k])) for k in xrange(k_max)]
+        for k in xrange(k_max):
+            fmt = np.vectorize(lambda x: '{:<{}}'.format(x, col_widths[k]))
+            mat_str[:, k] = fmt(mat_str[:, k])
+        for j in xrange(j_max):
+            res_str += '\t'.join(mat_str[j, :]) + '\n'
         return res_str
 
     def __unicode__(self):
@@ -344,8 +350,9 @@ class ARMA(UnicodeMixin):
             desc += arr_str
         for mat_name in ('A', 'B', 'C'):
             matrix = getattr(self, mat_name)
-            desc += '{}(L) =\n'.format(mat_name)
-            desc += self._print_matrix(matrix) + '\n'
+            if matrix.shape[0] != 0:
+                desc += '{}(L) =\n'.format(mat_name)
+                desc += self._print_matrix(matrix) + '\n'
         return desc
 
 

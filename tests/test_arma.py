@@ -277,3 +277,9 @@ def test_print():
     print(arma)
     arma = ARMA(A=AR, B=MA, C=X, TREND=[1, 2])
     print(arma)
+    AR = (np.array([1, .5, .31, 0, .2, .1, 0, .2, .01, 1, .49, .3]),
+          np.array([3, 2, 2]))
+    MA = (np.array([1., 2., 3., 0, 0, 0, 0, 0, 0, 1., 2., 3.]),
+          np.array([3, 2, 2]))
+    arma = ARMA(A=AR, B=MA)
+    print(arma)
