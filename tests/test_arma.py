@@ -265,3 +265,15 @@ def test_forecast_with_horizon():
                        9.503480, 10.368221, 11.137794, 11.474551])
     pred = arma.forecast(truth, horizon=5)
     nptest.assert_almost_equal(pred, result[:, np.newaxis], decimal=5)
+
+
+def test_print():
+    AR = (np.array([1, .5, .31, 0, .2, .1, 0, .2, .01, 1, .49, .3]),
+          np.array([3, 2, 2]))
+    MA = (np.array([1, .21, 0, .1, 0, -0.01, 1, .3]), np.array([2, 2, 2]))
+    X = (np.array([1, .3, 0, .05, 0, 0.1, 1, .3]), np.array([2, 2, 2]))
+    TREND = [[1, 21], [2, 22], [3, 23], [4, 24]]
+    arma = ARMA(A=AR, B=MA, C=X, TREND=TREND)
+    print(arma)
+    arma = ARMA(A=AR, B=MA, C=X, TREND=[1, 2])
+    print(arma)

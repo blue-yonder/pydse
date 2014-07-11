@@ -2,6 +2,7 @@
 
 from __future__ import division, print_function, absolute_import
 
+import re
 import logging
 import operator
 import itertools
@@ -113,12 +114,12 @@ class ARMA(object):
         if A is None:
             raise ARMAError("A needs to be set for an ARMA model")
         n = A.shape[1]
-        if n != A.shape[2] or len(A.shape) > 3:
+        if n != A.shape[2] or A.ndim > 3:
             raise ARMAError("A needs to be of shape (a, p, p)")
-        if n != B.shape[1] or (n != B.shape[2] or len(B.shape) > 3):
+        if n != B.shape[1] or (n != B.shape[2] or B.ndim > 3):
             raise ARMAError("B needs to be of shape (b, p, p) with A being "
                             "of shape (a, p, p)")
-        if C.size != 0 and (n != C.shape[1] or len(C.shape) > 3):
+        if C.size != 0 and (n != C.shape[1] or C.ndim > 3):
             raise ARMAError("C needs to be of shape (c, p, m) with A being "
                             "of shape (a, p, p)")
         if TREND is not None:
@@ -140,7 +141,7 @@ class ARMA(object):
     def _prep_trend(self, dim_t, dim_p, t0=0):
         trend = self.TREND
         if trend is not None:
-            if len(trend.shape) == 2:
+            if trend.ndim == 2:
                 assert trend.shape[1] == dim_p
                 if not trend.shape[0] >= t0+dim_t:
                     raise ARMAError("TREND needs to be available until "
@@ -314,6 +315,42 @@ class ARMA(object):
 
         x0 = self.non_consts
         return optimize.minimize(cost_function, x0)
+
+    def _print_matrix(self, matrix):
+        def join_with_lag(arr):
+            poly = str(arr[0])
+            for i, val in enumerate(xrange(1, arr.size), start=1):
+                poly += '+{}L{}'.format(val, i)
+            return poly
+
+        res_str = ''
+        i_max, j_max, k_max = matrix.shape
+        for j in xrange(j_max):
+            row_lags = list()
+            for k in xrange(k_max):
+                row_lags.append(join_with_lag(matrix[:, j, k]))
+            res_str += '\t'.join(row_lags) + '\n'
+        return res_str
+
+    def __unicode__(self):
+        desc = ''
+        TREND = self.TREND
+        if TREND is not None:
+            desc += 'TREND=\n'
+            if TREND.ndim == 1:
+                TREND = TREND[np.newaxis, :]
+            arr_str = np.array_str(np.transpose(TREND)) + '\n'*2
+            arr_str = re.sub(r' *\[+', '', arr_str)
+            arr_str = re.sub(r' *\]+', '', arr_str)
+            desc += arr_str
+        for mat_name in ('A', 'B', 'C'):
+            matrix = getattr(self, mat_name)
+            desc += '{}(L) =\n'.format(mat_name)
+            desc += self._print_matrix(matrix) + '\n'
+        return unicode(desc)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
 
 def minic(ar_lags, ma_lags, y, crit='BIC'):
