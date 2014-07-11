@@ -1,7 +1,9 @@
 # -*- encoding: utf-8 -*-
 
-from __future__ import division, print_function, absolute_import
+from __future__ import division, print_function, absolute_import, \
+    unicode_literals
 
+import sys
 import logging
 from itertools import chain, combinations
 
@@ -56,3 +58,17 @@ def make_lag_arr(lags, fuzz=1e-2):
     pol[0], pol[list(lags)] = 1., fuzz
     shape = np.array([lag_size, 1, 1])
     return pol, shape
+
+
+class UnicodeMixin(object):
+    """
+    Mixin class to handle defining the proper __str__/__unicode__
+    methods in Python 2 or 3.
+    """
+
+    if sys.version_info[0] >= 3:  # Python 3
+        def __str__(self):
+            return self.__unicode__()
+    else:  # Python 2
+        def __str__(self):
+            return self.__unicode__().encode('utf8')

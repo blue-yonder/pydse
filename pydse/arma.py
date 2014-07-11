@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
-from __future__ import division, print_function, absolute_import
+from __future__ import division, print_function, absolute_import,\
+    unicode_literals
 
 import re
 import logging
@@ -15,6 +16,7 @@ from six.moves import xrange
 
 from . import utils
 from . import stats
+from .utils import UnicodeMixin
 
 __author__ = "Florian Wilhelm"
 __copyright__ = "Blue Yonder"
@@ -23,15 +25,12 @@ __license__ = "new BSD"
 _logger = logging.getLogger(__name__)
 
 
-class ARMAError(Exception):
+class ARMAError(Exception, UnicodeMixin):
     def __unicode__(self):
-        return unicode(self.message)
-
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+        return self.message
 
 
-class ARMA(object):
+class ARMA(UnicodeMixin):
     """
     A(L)y(t) = B(L)e(t) + C(L)u(t) - TREND(t)
 
@@ -347,10 +346,7 @@ class ARMA(object):
             matrix = getattr(self, mat_name)
             desc += '{}(L) =\n'.format(mat_name)
             desc += self._print_matrix(matrix) + '\n'
-        return unicode(desc)
-
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+        return desc
 
 
 def minic(ar_lags, ma_lags, y, crit='BIC'):
