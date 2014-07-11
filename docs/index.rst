@@ -15,7 +15,7 @@ Contents
 
    Create and Simulate <simulate>
    Estimation of Parameters <estimate>
-   Forecast with horizon <forecast>
+   Forecast with Horizon <forecast>
    Contribution <contrib>
    Module Reference <_rst/modules>
 

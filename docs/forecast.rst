@@ -1,5 +1,5 @@
 =====================
-Forecast with horizon
+Forecast with Horizon
 =====================
 
 In chapter :ref:`Estimation of Parameters <estimation-of-parameters>` only
