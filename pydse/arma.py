@@ -315,7 +315,8 @@ class ARMA(UnicodeMixin):
         x0 = self.non_consts
         return optimize.minimize(cost_function, x0)
 
-    def _print_matrix(self, matrix):
+    def _lag_matrix_to_str(self, matrix):
+        # creates a string from a lag array
         def join_with_lag(arr):
             poly = str(arr[0])
             for i, val in enumerate(arr[1:], start=1):
@@ -324,17 +325,17 @@ class ARMA(UnicodeMixin):
             return poly
 
         res_str = ''
-        i_max, j_max, k_max = matrix.shape
+        _, j_max, k_max = matrix.shape
         mat_str = np.empty((j_max, k_max), dtype=object)
-        for j in xrange(j_max):
-            for k in xrange(k_max):
+        for j, k in itertools.product(xrange(j_max), xrange(k_max)):
                 mat_str[j, k] = join_with_lag(matrix[:, j, k])
+        # determine width for each column and set columns to that width
         col_widths = [max(map(len, mat_str[:, k])) for k in xrange(k_max)]
         for k in xrange(k_max):
             fmt = np.vectorize(lambda x: '{:<{}}'.format(x, col_widths[k]))
             mat_str[:, k] = fmt(mat_str[:, k])
         for j in xrange(j_max):
-            res_str += '\t'.join(mat_str[j, :]) + '\n'
+            res_str += '   '.join(mat_str[j, :]) + '\n'
         return res_str
 
     def __unicode__(self):
@@ -352,7 +353,7 @@ class ARMA(UnicodeMixin):
             matrix = getattr(self, mat_name)
             if matrix.shape[0] != 0:
                 desc += '{}(L) =\n'.format(mat_name)
-                desc += self._print_matrix(matrix) + '\n'
+                desc += self._lag_matrix_to_str(matrix) + '\n'
         return desc
 
 
