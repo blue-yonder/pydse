@@ -1,5 +1,9 @@
 # -*- encoding: utf-8 -*-
 
+"""
+Various different utilities and tools.
+"""
+
 from __future__ import division, print_function, absolute_import, \
     unicode_literals
 

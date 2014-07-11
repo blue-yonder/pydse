@@ -1,5 +1,9 @@
 # -*- encoding: utf-8 -*-
 
+"""
+All functionality related to ARMA models.
+"""
+
 from __future__ import division, print_function, absolute_import,\
     unicode_literals
 

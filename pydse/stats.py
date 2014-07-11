@@ -1,5 +1,9 @@
 # -*- encoding: utf-8 -*-
 
+"""
+General statistical functions and related tools.
+"""
+
 from __future__ import division, print_function, absolute_import, \
     unicode_literals
 
