@@ -35,7 +35,7 @@ JUNIT_XML = False
 
 # Add here all kinds of additional classifiers as defined under
 # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-CLASSIFIERS = ['Development Status :: 2 - Pre-Alpha',
+CLASSIFIERS = ['Development Status :: 4 - Beta',
                'License :: OSI Approved :: BSD License',
                'Programming Language :: Python',
                'Programming Language :: Python :: 2.7',

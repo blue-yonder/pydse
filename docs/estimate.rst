@@ -1,3 +1,5 @@
+.. _estimation-of-parameters:
+
 ========================
 Estimation of Parameters
 ========================
