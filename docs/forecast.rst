@@ -4,8 +4,8 @@ Forecast with Horizon
 
 In chapter :ref:`Estimation of Parameters <estimation-of-parameters>` only
 one-step ahead predictions were applied. So in our example of monthly data,
-all data up to last month was used to predict the number of passengers in
-the current month up to the last known month.
+all data up to the last month was used to predict the number of passengers in
+the current month. This is possible up to the last date with the known truth.
 
 In order to do forecasts beyond the period where all data is available, we can
 provide a ``horizon`` to the :obj:`~.ARMA.forecast` function. The horizon

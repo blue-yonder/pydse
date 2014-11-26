@@ -2,4 +2,4 @@ pandas
 matplotlib
 patsy
 IPython
-
+statsmodels
