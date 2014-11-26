@@ -17,6 +17,7 @@ Contents
    Estimation of Parameters <estimate>
    Forecast with Horizon <forecast>
    Contribution <contrib>
+   License <license>
    Module Reference <_rst/modules>
 
 

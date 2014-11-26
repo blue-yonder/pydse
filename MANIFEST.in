@@ -1,6 +1,7 @@
 include versioneer.py
 include *.txt
 include *.rst
+include tox.ini
 include pydse/data/*.csv
 recursive-include pydse *.py *.c *.h *.pxd *.pyx
 recursive-include docs *.rst *.py

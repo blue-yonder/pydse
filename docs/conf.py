@@ -11,26 +11,17 @@
 import sys
 import os
 import inspect
+from sphinx import apidoc
 
 
 __location__ = os.path.join(os.getcwd(), os.path.dirname(
     inspect.getfile(inspect.currentframe())))
 
-# Specific options for RTD build
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
-if on_rtd:
-    import pip
-    import subprocess
-
-    pip.main(['install', 'statsmodels'])
-    output_dir = os.path.join(__location__, "../docs/_rst")
-    module_dir = os.path.join(__location__, "../pydse")
-    cmd_line_template = "sphinx-apidoc -f -o {outputdir} {moduledir}"
-    cmd_line = cmd_line_template.format(outputdir=output_dir,
-                                        moduledir=module_dir)
-    subprocess.call(cmd_line, shell=True)
-
+output_dir = os.path.join(__location__, "../docs/_rst")
+module_dir = os.path.join(__location__, "../pydse")
+cmd_line_template = "sphinx-apidoc -f -o {outputdir} {moduledir}"
+cmd_line = cmd_line_template.format(outputdir=output_dir, moduledir=module_dir)
+apidoc.main(cmd_line.split(" "))
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -63,7 +54,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'pydse'
+project = u'PyDSE'
 copyright = u'2014, Blue Yonder'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -129,7 +120,12 @@ html_theme = 'default'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-# html_title = None
+try:
+    from pydse import __version__ as version
+except ImportError:
+    pass
+else:
+    release = version
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None
@@ -209,7 +205,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'PyDSE.tex', u'PyDSE Documentation',
+  ('index', 'user_guide.tex', u'PyDSE Documentation',
    u'Blue Yonder', 'manual'),
 ]
 
