@@ -22,14 +22,14 @@ We create a simple ARMA model for a two dimensional output vector with matrices:
 .. math::
 
     A(L) = \left( \begin{array}{cc}
-    1+0.5L1+0.3L2 & 0+0.2L1+0.1L2\\
-    0+0.2L1+0.05L2 & 1+0.5L1+0.3L2\end{array} \right),
+    1+0.5L_1+0.3L_2 & 0+0.2L_1+0.1L_2\\
+    0+0.2L_1+0.05L_2 & 1+0.5L_1+0.3L_2\end{array} \right),
 
 .. math::
 
     B(L) =\left( \begin{array}{cc}
-    1+0.2L1 & 0+0.1L1\\
-    0+0.0L1 & 1+0.3L1\end{array} \right)
+    1+0.2L_1 & 0+0.1L_1\\
+    0+0.0L_1 & 1+0.3L_1\end{array} \right)
 
 In order to set this matrix we just write the entries left to right, up to down
 into an array and define the shape of this array in a second array:
