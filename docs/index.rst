@@ -18,6 +18,7 @@ Contents
    Forecast with Horizon <forecast>
    Contribution <contrib>
    License <license>
+   Changelog <changes>
    Module Reference <_rst/modules>
 
 
