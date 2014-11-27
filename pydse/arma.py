@@ -14,6 +14,7 @@ import itertools
 
 import six
 import numpy as np
+import pandas as pd
 from numpy import linalg
 from scipy import optimize
 from six.moves import xrange
@@ -196,7 +197,7 @@ class ARMA(UnicodeMixin):
         y = np.vstack((y0[a::-1, ...], y))
         w = np.vstack((w0[b::-1, ...], w))
         u = np.vstack((u0[c::-1, ...], u))
-        
+
         # perform simulation by multiplying the lagged matrices to the vectors
         # and summing over the different lags
         for t in xrange(a, sampleT+a):
@@ -359,6 +360,33 @@ class ARMA(UnicodeMixin):
                 desc += '{}(L) =\n'.format(mat_name)
                 desc += self._lag_matrix_to_str(matrix) + '\n'
         return desc
+
+    def plot_forecast(self, y, horizon=0, u=None):
+        """
+        Calculate an one-step-ahead forecast and plot prediction and truth.
+
+        :param y: output time series
+        :param horizon: number of predictions after y[T_max]
+        :param u: external input time series
+        :return: predicted time series as array
+        """
+        def get_lags_idx(arr):
+            return map(lambda x: str(x[0]),
+                       filter(lambda x: x[1] != 0,
+                              enumerate(arr.flatten())[1:]))
+
+        prediction = self.forecast(y, horizon, u)
+        df = pd.DataFrame({
+            'Prediction': prediction[:, 0],
+            'Truth': y
+        })
+
+        MAD = np.mean(np.abs(prediction[:, 0] - y)[20:])
+        df.plot(title="AR lags: {}; MA lags: {}; MAD: {}".format(
+            ", ".join(get_lags_idx(self.A)),
+            ", ".join(get_lags_idx(self.B)), MAD))
+
+        return prediction
 
 
 def minic(ar_lags, ma_lags, y, crit='BIC'):
