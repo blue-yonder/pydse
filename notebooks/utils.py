@@ -11,6 +11,7 @@ __author__ = "Uwe L. Korn"
 __copyright__ = "Blue Yonder"
 __license__ = "new BSD"
 
+
 def ols(series):
     """
     Approximate a series by ordinary least squares regression.
