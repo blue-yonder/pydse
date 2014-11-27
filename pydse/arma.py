@@ -371,9 +371,11 @@ class ARMA(UnicodeMixin):
         :return: predicted time series as array
         """
         def get_lags_idx(arr):
-            return map(lambda x: str(x[0]),
+            lags = map(lambda x: str(x[0]),
                        filter(lambda x: x[1] != 0,
-                              enumerate(arr.flatten())[1:]))
+                              enumerate(arr.flatten())))
+            # First entry is always 1 and not part of the used lags
+            return list(lags)[1:]
 
         prediction = self.forecast(y, horizon, u)
         df = pd.DataFrame({
