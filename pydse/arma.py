@@ -361,7 +361,7 @@ class ARMA(UnicodeMixin):
                 desc += self._lag_matrix_to_str(matrix) + '\n'
         return desc
 
-    def plot_forecast(self, y, horizon=0, u=None):
+    def plot_forecast(self, all_y, horizon=0, u=None):
         """
         Calculate an one-step-ahead forecast and plot prediction and truth.
 
@@ -377,13 +377,20 @@ class ARMA(UnicodeMixin):
             # First entry is always 1 and not part of the used lags
             return list(lags)[1:]
 
-        prediction = self.forecast(y, horizon, u)
-        df = pd.DataFrame({
-            'Prediction': prediction[:, 0],
-            'Truth': y
-        })
+        if horizon > 0:
+            y = all_y[:-horizon]
+            df = pd.DataFrame({
+                'Future': all_y[horizon:],
+                'Known Truth': y
+            })
+        else:
+            y = all_y
+            df = pd.DataFrame({'Truth': all_y})
 
-        MAD = np.mean(np.abs(prediction[:, 0] - y)[20:])
+        prediction = self.forecast(y, horizon, u)
+        df['Prediction'] = prediction[:, 0]
+
+        MAD = np.mean(np.abs(prediction[:, 0] - all_y)[20:])
         df.plot(title="AR lags: {}; MA lags: {}; MAD: {}".format(
             ", ".join(get_lags_idx(self.A)),
             ", ".join(get_lags_idx(self.B)), MAD))
