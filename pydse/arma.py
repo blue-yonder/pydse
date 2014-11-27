@@ -196,7 +196,7 @@ class ARMA(UnicodeMixin):
         y = np.vstack((y0[a::-1, ...], y))
         w = np.vstack((w0[b::-1, ...], w))
         u = np.vstack((u0[c::-1, ...], u))
-        
+
         # perform simulation by multiplying the lagged matrices to the vectors
         # and summing over the different lags
         for t in xrange(a, sampleT+a):
