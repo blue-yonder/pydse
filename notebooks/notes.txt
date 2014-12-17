@@ -1,0 +1,23 @@
+=========
+Exercises
+=========
+
+
+For the petroleum-worksheet this time schedule should roughly hold:
+
+Minutes			Task
+15			Introduction + System Setup
+10			Preprocess time series
+20			Fitting the ARMA model
+20			minic (runtime is the major time consumer here)
+10			Backtrasnformation + first conclusion
+30			Vehicles
+15			Horizon
+= 120
+
+The presentation can be created with:
+ipython nbconvert --to slides notebooks/petroleum.ipynb
+
+Removal of ugly "pass" lines with:
+sed -i '/<span class="k">pass<\/span>/d' petroleum.slides.html
+
