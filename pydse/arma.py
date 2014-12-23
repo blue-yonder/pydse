@@ -371,11 +371,8 @@ class ARMA(UnicodeMixin):
         :return: predicted time series as array
         """
         def get_lags_idx(arr):
-            lags = map(lambda x: str(x[0]),
-                       filter(lambda x: x[1] != 0,
-                              enumerate(arr.flatten())))
             # First entry is always 1 and not part of the used lags
-            return list(lags)[1:]
+            return [str(i) for i, v in enumerate(arr.flatten()) if v != 0][1:]
 
         if horizon > 0:
             y = all_y[:-horizon]
