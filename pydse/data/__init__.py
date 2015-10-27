@@ -10,7 +10,7 @@ from __future__ import division, print_function, absolute_import
 
 import os
 import inspect
-import numpy as np
+from datetime import datetime
 import pandas as pd
 
 __author__ = "Florian Wilhelm"
@@ -22,8 +22,18 @@ __location__ = os.path.join(
 
 
 def _get_df_from_file(filename):
+    def parse_dates(date_str):
+        for date_format in ['%y-%m', '%Y-%m']:
+            try:
+                return datetime.strptime(date_str, date_format)
+            except ValueError:
+                pass
+        else:
+            return ValueError("Could not parse the date {}".format(date_str))
+
     path = os.path.join(__location__, filename)
-    return pd.DataFrame.from_csv(path, sep=";")
+    return pd.read_csv(path, sep=";", parse_dates=True, index_col=0,
+                       date_parser=parse_dates)
 
 
 def airline_passengers():

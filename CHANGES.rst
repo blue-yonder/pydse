@@ -2,6 +2,11 @@
 Release Notes
 =============
 
+Version 0.2.1, 2015-10-27
+=========================
+
+- Fix unit tests due to changes in Pandas
+
 Version 0.2, 2014-12-23
 =======================
 

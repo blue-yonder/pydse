@@ -18,7 +18,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # Use the miniconda installer for faster download / install of conda
     # itself
-    wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh \
+    wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh \
         -O miniconda.sh
     chmod +x miniconda.sh && ./miniconda.sh -b
     export PATH=/home/travis/miniconda/bin:$PATH
@@ -27,7 +27,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     # Configure the conda environment and put it in the path using the
     # provided versions
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
-        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
+        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION pandas libgfortran
     source activate testenv
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
